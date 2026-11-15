@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="MultiValueCodeValidator" displayname="Multi-Value Code Validator" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Validates text fields that hold several codes in one value (for example "A;B;C"): every token is checked against the field's coded-value domain (subtype level), a lookup table or a value list, and empty, padded, wrongly cased, unknown and repeated tokens and mixed delimiters are reported. Optionally writes an exploded table with one row per token.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layer or table with the multi-value code field.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="code_field" expression="code_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text field holding delimited codes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="delimiter" expression="delimiter">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Delimiter between codes, or AUTO to detect it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="valid_source" expression="valid_source">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Where the valid codes come from: DOMAIN (coded-value domain), TABLE (a field of a lookup table) or LIST (Value List).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="domain_name" expression="domain_name">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;DOMAIN mode: domain to use when the field itself has no domain.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="lookup_table" expression="lookup_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TABLE mode: table holding the valid codes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="lookup_field" expression="lookup_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TABLE mode: field of the lookup table holding the valid codes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="value_list" expression="value_list">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;LIST mode: the valid codes (a code in quotes, such as 'A;B', is one code; a quote that is part of a code is kept).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="case_sensitive" expression="case_sensitive">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Compare codes with exact case. Wrong case is then reported as CASE_MISMATCH with the correct code.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="explode" expression="explode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Also write one row per token (empty tokens are skipped).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="keep_geometry" expression="keep_geometry">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Write the exploded rows as features with the parent's geometry.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table of token issues: SRC_OID, POSITION, TOKEN, ISSUE, SUGGESTED.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_explode" expression="out_explode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Exploded output (required when Explode is checked): PARENT_OID, POSITION, TOKEN, DESCRIPTION, TOKEN_STATUS (OK for a valid token, even a padded one) and the other attribute fields that can be carried (a warning names any that are not).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report with Summary and Detail sheets.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of token issues found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Positions are 1-based over the raw split, so an empty token still takes a position. Tokens are trimmed before they are validated: spaces, line breaks and invisible marks (right-to-left mark, zero-width space, BOM) at either end are named WHITESPACE or INVISIBLE_MARK and then ignored. A value that holds nothing but spaces or invisible marks is counted as blank (not as an empty token). Codes of a domain, table or list that have such padding are compared without it (a warning counts them). DUPLICATE_TOKEN marks a repeat of a valid code only. Data such as "A; B; C" gives a WHITESPACE row for every token after the first.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;AUTO delimiter: the most frequent of ; , | / and the Arabic comma and semicolon (U+060C, U+061B) in the field, counted after the text of the valid codes is removed (the / of Hospital/Clinic is not a separator; the codes are removed in any case, also when Case sensitive is checked, and padded codes also trimmed); when no candidate occurs outside the codes, the values are single codes and the first candidate that occurs in no valid code is used (; unless a code such as 'A;B' holds it; an info message says so); ; is used when every candidate occurs inside a code. A token that contains one of the other candidate delimiters and is not a valid code, not even ignoring case, is flagged MIXED_DELIMITER (hospital/clinic for the code Hospital/Clinic is only CASE_MISMATCH). Codes that contain the chosen delimiter cannot be validated; they are listed in a warning. A value with more than 32,767 tokens stops the run before anything is written (POSITION is a short integer).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;In DOMAIN mode the domain is resolved per row at subtype level; Domain Name is used when the field (or the row's subtype) has no domain (an info message says when it was not used for any row). Numeric domains and numeric lookup fields (TABLE mode) compare numerically ("01" = 1; only ASCII numbers); in an integer domain or lookup field a decimal spelling matches only the integer it equals exactly (1.0 = 1, but 0.99999999999999999 is UNKNOWN_TOKEN); a Value List and a text lookup field compare as text. In a Double or Float domain or lookup field the token is rounded as that type stores numbers (integer and decimal text alike), so 9007199254740993 equals the Double code 9007199254740992 and 0.1000000001 equals the Float code 0.1. An ObjectID lookup field compares as an integer; a Date, GUID or GlobalID lookup field compares as text in the form the table returns (a warning shows it), and a Geometry, Blob or Raster field is refused. A Value List code that contains another delimiter candidate (A,B,C) is one code; a warning says so. A lookup field or Value List without any valid code is refused; a domain without codes gives a warning.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The exploded output carries the other attribute fields whose type Add Field can create (TimeOnly and TimestampOffset only into a geodatabase); a warning names every field that is not carried (other types, non-editable fields). A shapefile or dBASE output cannot hold GUID, GlobalID, Big Integer or Date Only fields: there a GUID field and PARENT_GUID are text of 38 characters, a Big Integer field is text with every digit and a Date Only field is a date; a warning names them, and this is decided before anything is written. Rows of a subtype without a domain (and no Domain Name) are neither checked nor exploded; a warning counts them, and so do the info message and the report Summary (Rows not checked (no domain)). With Keep geometry, true curves are densified into straight segments and Z/M values are dropped (x,y only; a warning says so). An input field whose name is taken by one of the tool's own fields (PARENT_OID, POSITION, TOKEN, DESCRIPTION, TOKEN_STATUS, PARENT_GUID), or by another field once cut to 10 characters in a shapefile or dBASE output, is carried under a new name such as DESCRIPTION_1; a warning lists each such field. A carried field keeps its field-level domain when the output geodatabase has it (a warning names the fields that lose it). The exploded TOKEN is the token as typed (trimmed); in a case-insensitive run a valid token keeps its own case (a gets the description of A). Subtypes and subtype-level domains are not carried.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;In a shapefile or dBASE output a text field holds at most 254 UTF-8 bytes (an Arabic letter takes 2): longer text, such as a long carried attribute, is cut to 254 bytes and a warning counts the cut values; write the outputs to a file geodatabase to keep the full text (the report keeps it too). A shapefile or dBASE table cannot store an empty number or hold a domain: an empty carried number is stored as 0 (an empty text as empty text) and a warning names those fields. A lone UTF-16 surrogate (half of a character pair) cannot be stored in any output table: it is written as U+FFFD (the replacement character) and a warning counts the values.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Null values are counted only. Selections and definition queries on input layers are honoured. The input is never edited, and no output or report may replace the input or the lookup table (refused before anything is written).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Multi-Value Code Validator</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Validates text fields that hold several codes in one value (for example "A;B;C"): every token is checked against the field's coded-value domain (subtype level), a lookup table or a value list, and empty, padded, wrongly cased, unknown and repeated tokens and mixed delimiters are reported. Optionally writes an exploded table with one row per token.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>multi-value</keyword>
+      <keyword>delimited</keyword>
+      <keyword>domain</keyword>
+      <keyword>codes</keyword>
+      <keyword>explode</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="PolygonHoleInventory" displayname="Polygon Holes and Parts" toolboxalias="spatialbasic" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lists every ring of every polygon feature (outer rings and holes) with its area, perimeter, vertex count, the part a hole sits in, the hole's share of its outer ring and flags (SLIVER, TINY, TOUCHES_OUTER, TOUCHES_OTHER_HOLE, OVERLAPS_OTHER_HOLE, NESTED, HAS_ISLAND, NO_OUTER, OVERLAPS_PART, SELF_TOUCH, ZERO_AREA). Optionally writes the holes as polygons for mapping, and a cleaned copy in which holes and small parts below a threshold are removed, with a change log of every ring changed. Calls no Advanced or Standard tool (Eliminate Polygon Part needs Advanced); use on a Basic licence is NOT VERIFIED.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Polygon features in a projected coordinate system.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_inventory" expression="out_inventory">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table with one row per ring (outer rings, holes and degenerate rings).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_holes" expression="out_holes">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output polygon feature class with every hole as a polygon (same fields as the inventory).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output cleaned polygons (holes and small parts below the thresholds removed). Needs a change log and a threshold.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_log" expression="out_log">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output table: three run rows (the settings of the run) and one row per ring changed or deliberately kept (ACTION and DETAIL). Required with the cleaned polygons; alone it is a preview of the plan.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_hole_area_m2" expression="min_hole_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fill holes with an area below this many square metres (0 = off).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_hole_percent" expression="max_hole_percent">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fill holes whose area is below this percentage of their outer ring (0 = off).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="hole_logic" expression="hole_logic">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;ANY fills a hole that meets either hole threshold, ALL one that meets both (only matters when both are set).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_part_area_m2" expression="min_part_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Drop parts with a net area below this many square metres (0 = off).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="tiny_area_m2" expression="tiny_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Flag TINY on rings with an area below this (square metres, 0 = off).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sliver_width_m" expression="sliver_width_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Flag SLIVER on rings with a mean width below this (metres, 0 = off) and a thinness below Maximum Thinness.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_thinness" expression="max_thinness">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Thinness 4 * pi * area / perimeter^2 below this counts as thin (1 = circle).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="touch_tolerance_m" expression="touch_tolerance_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Boundary points closer than this (metres) count as touching.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (or CSV) report: summary and the inventory.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="hole_count" expression="hole_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of holes found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Quick start: (1) choose the polygon layer (projected coordinate system) and a name for Output Ring Inventory, then run: you get one row per ring (outer rings and holes) with area, share of the outer ring and flags. (2) Add Output Hole Polygons to map the holes. (3) To clean, set a threshold (Fill Holes Smaller Than, Fill Holes Below Percent or Drop Parts Smaller Than) and give both Output Cleaned Polygons and Output Change Log; with only the log you get a preview.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Verification: that the tool needs only Basic rests on Esri's licence pages; use on a Basic licence is NOT VERIFIED. The NaN check is tested in Python only, and enterprise geodatabase outputs are untested. Output format effects: in a GeoPackage Pro stores PLAN as PLAN_ and ACTION as ACTION_ (the run warns); in shapefile and dBASE outputs empty numbers are 0, empty text reads back as a space, a carried field called id becomes id_1, and Pro adds an Id or Field1 field.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Input: polygon features in a projected coordinate system. Areas are planar areas in square metres of that system (a unit other than metres is converted with its metres per unit); any scale error of the system itself is not corrected. A geographic system, an undefined system and a Web Mercator system are refused with a message: project the data first (for example to its UTM zone). The coordinate system and unit are reported.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Rings: a clockwise ring is an outer ring (a part), a counter-clockwise ring is a hole of the smallest outer ring that contains it and is larger than the hole beyond rounding noise (Esri convention); an island with the same boundary as its hole up to floating-point rounding (another start vertex, extra collinear vertices, coordinates rotated or reprojected in double precision) therefore does not own it and is NESTED in it. Vertices that differ by more than rounding (snapped to a coarser grid) are not the same boundary. A counter-clockwise ring that no outer ring contains is kept as a part of its own and flagged NO_OUTER; it never takes holes, so a counter-clockwise ring inside it is a NO_OUTER part too, whatever the stored order. A NO_OUTER part that shares area with another part of the feature is flagged OVERLAPS_PART (both parts; the run warns): the shared area is counted twice. Rings are read as stored and not repaired, with one exception: in a feature the cleaned copy changes, a NO_OUTER ring is written clockwise (ORIENT_NO_OUTER in the log), so the copy never holds a feature of negative area; the log audit counts such a ring positive. PART is 1-based in stored order; RING is 0 for the outer ring and 1, 2, ... for its holes; SRC_RING is the position of the ring in the stored geometry. A part inside a hole of another part (an island) is a part of its own: NESTED on its outer ring, HAS_ISLAND on the hole. A hole is never filled while a kept part lies inside it at any depth (also inside a hole of a dropped island): KEEP_HOLE_ISLAND. A ring with fewer than 3 distinct vertices or an area of 0.000001 m2 or less is RING_TYPE DEGENERATE (ZERO_AREA, no part). A ring that visits a coordinate twice (not as neighbours) is flagged SELF_TOUCH and still counts as one ring with its shoelace area; self-crossing rings are not detected (use Check Geometry).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Measures: AREA_M2 and PERIM_M are those of the ring; OUTER_M2 is the area of the outer ring of the part; NET_M2 (on outer rings) is the part's area with its holes subtracted; HOLE_PCT is the hole area as a percentage of OUTER_M2; WIDTH_M is the mean width 2 * area / perimeter. SLIVER: WIDTH_M below the Sliver Width and thinness 4 * pi * area / perimeter^2 below Maximum Thinness. TINY: ring area below Tiny Area. TOUCHES_OUTER / TOUCHES_OTHER_HOLE: boundary points within Touch Tolerance of the outer ring or of another hole of the part. OVERLAPS_OTHER_HOLE: two holes of a part share area (boundaries cross, or a stretch of one lies inside the other, also when they meet only at shared vertices and edges, or identical): invalid geometry; NET_M2 subtracts the shared area twice and is too small, so repair the geometry first (the run warns and names the features). A ring with a NaN or infinite coordinate is refused: the feature is listed as not analysed.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Cleaning (the Fill Holes / Drop Parts thresholds; 0 = off, all comparisons are strict 'below', in double precision, so a hole within about 1e-8 m2 of a threshold can go either way): a hole is filled when its area is below Fill Holes Smaller Than and/or its HOLE_PCT is below Fill Holes Below Percent (Hole Threshold Logic ANY or ALL when both are set). A part is dropped when its NET_M2 is below Drop Parts Smaller Than; its holes go with it. All decisions use the input geometry, so a part is dropped by its net area before any fill (a 100 m2 part with a 98 m2 hole goes at Drop Parts Smaller Than 10 even when the hole meets the fill rule; fill in a first run and drop in a second to keep it). A hole that holds a part that is kept is not filled (KEEP_HOLE_ISLAND). A feature never vanishes: if every part would be dropped, the largest part (by NET_M2, the first on ties) is kept (KEEP_LARGEST_PART); so a single-part feature below Drop Parts Smaller Than is kept and logged KEEP_LARGEST_PART, with nothing dropped (the run message counts such single-part features apart). Without Output Cleaned Polygons the message starts 'Plan (nothing was changed)' and says what would be done. SRC_OID is LONG while every ObjectID fits 32 bits, else BIGINTEGER in a geodatabase, GeoPackage or memory (above 2^53 - 1 refused) and, in a folder, DOUBLE up to 12 significant digits, else TEXT(20). The cleaned copy carries the input fields of a type Add Field can create; BLOB, raster and GlobalID fields are left out and a warning names them (run Add Global IDs on the copy for new GlobalIDs). Rings without area are always removed from the cleaned copy (DROP_ZERO_AREA), unless the feature has no ring with an area (kept as stored). A feature without any change keeps its geometry exactly. The PLAN field of the inventory shows the planned action per ring whenever a threshold is set, so the result can be previewed (and the hole layer styled by PLAN) before a cleaned copy is written. Without Output Cleaned Polygons a change log is a preview of the plan. The change log opens with three run rows (RUN_SETTINGS, RUN_FLAGS, RUN_INPUT) that record the thresholds, logic, flag parameters, coordinate system and unit of the run; every other row names a ring (SRC_OID, SRC_RING) and its DETAIL says which rule fired. In a folder (dBASE) change log a DETAIL longer than 254 bytes is cut to 254 bytes ending in ' ...[cut]' and the run warns; a geodatabase or GeoPackage log keeps it whole.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Differences from Eliminate Polygon Part (Advanced licence; source: its Esri help page, linked at the end): by default it removes only parts contained by other parts, this tool drops any part below the threshold; it also has a percentage for parts, this tool has not; its percentage is of the feature's total outer area, here of the outer ring of the hole's own part; it removes an island inside a hole that is filled, this tool keeps the hole (KEEP_HOLE_ISLAND); this tool drops a part by its net area (how Eliminate Polygon Part measures a part with holes is not verified); and every action is listed in a log.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Features with true curves are listed and skipped in the inventory; with an Output Cleaned Polygons they stop the run (Densify them first). Features without geometry are skipped in the inventory and copied without geometry. Z and M values are not kept: the cleaned polygons and the hole polygons are 2D, and the run warns when the input stores Z or M values.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Size: the whole input is held in memory (no streaming). The tool warns for 50,000 features or more, and when its estimate reaches 1,000 MB (about 4.4 KB per small feature, measured only in a simulated environment, not in ArcGIS Pro). If Pro runs out of memory, split the input with a selection or definition query and run the parts one after another.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A shapefile cannot store an empty number: in a folder output empty values are stored as 0 (text as empty text) and the run warns about it. Use a file geodatabase for empty values. Selections and definition queries on the input layer are honoured. The input is never edited; no output may replace the input or another output. If an arcpy error stops the run while outputs are written, the outputs this run created are deleted.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Built-in alternative: Eliminate Polygon Part needs an Advanced licence (its Esri help page, Licensing: Basic No, Standard No, Advanced Yes: https://pro.arcgis.com/en/pro-app/latest/tool-reference/data-management/eliminate-polygon-part.htm); it produces one feature class, with no inventory or log.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Polygon Holes and Parts</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lists every ring of every polygon feature (outer rings and holes) with its area, perimeter, vertex count, the part a hole sits in, the hole's share of its outer ring and flags (SLIVER, TINY, TOUCHES_OUTER, TOUCHES_OTHER_HOLE, OVERLAPS_OTHER_HOLE, NESTED, HAS_ISLAND, NO_OUTER, OVERLAPS_PART, SELF_TOUCH, ZERO_AREA). Optionally writes the holes as polygons for mapping, and a cleaned copy in which holes and small parts below a threshold are removed, with a change log of every ring changed. Calls no Advanced or Standard tool (Eliminate Polygon Part needs Advanced); use on a Basic licence is NOT VERIFIED.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>polygon</keyword>
+      <keyword>holes</keyword>
+      <keyword>eliminate</keyword>
+      <keyword>inventory</keyword>
+      <keyword>basic</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

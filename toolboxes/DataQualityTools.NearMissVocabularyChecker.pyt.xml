@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="NearMissVocabularyChecker" displayname="Near-Miss Value Checker" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks one or more text fields against a controlled vocabulary (a field of a table, a .txt or .csv word list, or each field's coded-value domain) and lists every distinct value that is not in it: spelling variants that only differ in case, spaces or Arabic letter forms (NORMALISATION), near-miss spellings with the closest allowed value and a similarity score (NEAR_MISS), and values with no close match (UNKNOWN). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layer or table with the text fields to check.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="fields" expression="fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text fields to check. Each is checked separately against the vocabulary.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vocab_source" expression="vocab_source">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TABLE: a field of a table or layer. FILE: a .txt or .csv word list. DOMAIN: the coded-value domain of each checked field (field or subtype level).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vocab_table" expression="vocab_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TABLE source: table or layer holding the allowed values.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vocab_field" expression="vocab_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TABLE source: text field with the allowed values.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vocab_file" expression="vocab_file">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FILE source: UTF-8 .txt file (one value per line) or .csv file (header row; comma, semicolon, tab or vertical bar delimiter, detected from the header).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vocab_column" expression="vocab_column">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FILE source, .csv only: header name of the column with the allowed values. Default: the first column. Ignored, with a warning, for a .txt file (one value per line, no header).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="cutoff" expression="cutoff">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lowest similarity (0 to 1) for a NEAR_MISS suggestion. Default 0.8.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="ignore_case" expression="ignore_case">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Ignore upper/lower case when comparing (a case-only difference is then NORMALISATION).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="normalise_arabic" expression="normalise_arabic">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fold Arabic letter variants, tashkeel and tatweel before comparing.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="fold_teh_marbuta" expression="fold_teh_marbuta">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Also treat teh marbuta and heh as the same letter (only with Normalise Arabic letters).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="numbers_must_match" expression="numbers_must_match">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;When both the value and an entry contain numbers and the numbers differ, never suggest that entry (Block 21 is not a near miss of Block 12; Gate 1 can still suggest Gate). Without it such a suggestion is made and DETAIL says the numbers differ. Only digit runs are compared: letters in a code (3B, 3C), separators (1,000, 12.0) and leading zeros (012) are not handled.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table: FIELD, VALUE, COUNT, ISSUE, SUGGESTION, SCORE, SAMPLE_OIDS, VOCAB, DETAIL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional report. Excel (.xlsx): one workbook with a Summary and a Detail sheet. CSV (.csv): two files next to each other, &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv; no file called &amp;lt;name&amp;gt;.csv is written.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of distinct non-conforming values (rows of the output table; derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;A value conforms when it equals a vocabulary entry exactly. Otherwise both are normalised: Unicode NFC (a decomposed spelling, as exported on macOS or copied from a PDF, equals its precomposed form), control and invisible characters removed (ZWNJ and ZWJ included, whatever the Arabic option), spaces trimmed and collapsed, Arabic-Indic digits read as ASCII digits, case ignored (option; Python casefold, so also ß = ss and ligatures such as the fi ligature = fi) and Arabic letters folded (option: tashkeel, tatweel, alef forms, alef maqsura to yeh, Persian kaf and yeh, presentation forms; teh marbuta to heh only when chosen). Hamza on waw or yeh (U+0624, U+0626) is NOT folded: it is a letter of its own, so a dropped hamza is a near miss at best (0.75 for a 4-letter word, UNKNOWN at the default cutoff). Equal after normalisation = NORMALISATION (score 1). When such a value differs from its suggestion only in invisible characters (for example RLM U+200F or a zero width space U+200B), in Unicode composition, in space forms (NBSP U+00A0 or another space than U+0020, one for one) or in look-alike letter forms (Arabic presentation forms, Persian kaf and yeh), DETAIL says so ("Differs only in space forms (U+00A0)."), also for a NEAR_MISS; vocabulary entries that contain invisible characters are named in a message, because a suggestion copies them into the data; entries that contain control characters (such as U+0001) are named in a warning for the same reason, and when a value differs from its suggestion only by such characters DETAIL says "Differs only in control characters (U+0001).".&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Otherwise the similarity of the normalised texts is Python's difflib.SequenceMatcher ratio (2 x matching characters / total characters, autojunk off, shorter text first). The best entry at or above the cutoff is the suggestion (NEAR_MISS); among equal scores an entry whose numbers do not differ from the value's comes first, then code-point order, and the other tied entries are listed in DETAIL (the first 10, then "... and N more"). Below the cutoff the value is UNKNOWN. Example: with the vocabulary Riyadh and Jeddah and cutoff 0.8, 'Riyad' suggests Riyadh (0.909) and 'Dammam' is UNKNOWN.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Digits count as letters in the score, so 'Block 21' can suggest 'Block 12' (0.875). When both texts contain numbers and the numbers differ, DETAIL says so; turn on Numbers must match to never suggest such an entry. Only runs of digits are compared: letters in a code (3B against 3C) are not protected, and 1,000, 12.0 or 012 count as other numbers than 1000 or 12.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Null, empty and whitespace-only values are skipped and counted in the report. A value that is not blank but empty once normalised (tatweel or tashkeel only) is UNKNOWN, and DETAIL says it is empty once normalised. Table and file vocabulary entries are trimmed; coded-value domain codes are used exactly as stored (subtype-level domains are honoured). Each domain's number of allowed codes is reported. Rows with no coded-value domain (for example rows of a subtype without one) are not checked, with a warning; a coded-value domain with no codes (or only blank codes) is named in a warning and its rows are not checked; and the run is refused when no row read has a coded-value domain with codes. A .txt file has one value per line; a .csv file has a header row and the column named in Vocabulary Column (default the first column); its delimiter (comma, semicolon, tab or vertical bar) is detected from the header row and reported. A row with more cells than the header (usually a value with an unquoted delimiter, such as King Fahd Road, North) gives a warning with the count and the first such line; in a file with a one-column header the whole line is read as one value, as written (quotes included), otherwise the extra cells are ignored. A .txt line ends only at a line feed or carriage return. When values are reported and the first of several columns was used by default, a warning names the columns; Vocabulary Column set for a .txt file is ignored with a warning. Files must be UTF-8: other encodings, and text with NUL characters (UTF-16 saved without a byte-order mark), are refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The output has one row per field and distinct value that is not in the vocabulary, with its row count and up to 10 sample ObjectIDs. The tool never edits data: apply the suggestions yourself (for example with Calculate Field or in an edit session) after reviewing them. The report Summary counts values per field cell (one per row and checked field), so with several fields its value counts add up to more than Rows read. A .csv report is written as two files, &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv. The run time grows with the number of distinct values times the number of vocabulary entries (4.87 s for 19,871 distinct values against 3,000 entries is a best case; 25,000 values that almost match many entries can take a minute or more, and 3,000 values against 50,000 similar entries took about 9 minutes in one measurement; Cancel stops the run between two values and writes nothing). Long texts are slow: the time for one comparison grows about with the square of the text length or faster (two near-identical texts of 10,000 characters took about 2 minutes in one measurement, and Cancel cannot stop a single comparison). Selections and definition queries on the input layer and on a vocabulary layer are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;In a dBASE table or shapefile output (text fields of at most 254 bytes in UTF-8, an Arabic letter takes 2 bytes; field names of at most 10: SAMPLE_OIDS becomes SAMPLE_OID) longer texts are cut to 254 bytes (never in the middle of a letter) and a warning says how many values were cut; two values that differ only after the cut then look the same in the table; the report keeps the full text. If writing the output fails part-way, the unfinished table is deleted.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Control characters (U+0000 to U+001F except tab, line feed and carriage return) are kept in the output table; an Excel report cannot hold them, so it shows each one as &amp;lt;U+XXXX&amp;gt; and a warning names them; a CSV report does the same. An Excel cell holds at most 32,767 characters: a longer text is cut in the Excel report, the cut is marked and a warning gives the count (a CSV report keeps the full text). A CSV report also puts an apostrophe (') before a text that starts with =, @, +, -, tab or carriage return (except a plain number such as -5), so that Excel does not run it as a formula.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Near-Miss Value Checker</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks one or more text fields against a controlled vocabulary (a field of a table, a .txt or .csv word list, or each field's coded-value domain) and lists every distinct value that is not in it: spelling variants that only differ in case, spaces or Arabic letter forms (NORMALISATION), near-miss spellings with the closest allowed value and a similarity score (NEAR_MISS), and values with no close match (UNKNOWN). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>vocabulary</keyword>
+      <keyword>spelling</keyword>
+      <keyword>fuzzy</keyword>
+      <keyword>gazetteer</keyword>
+      <keyword>Arabic</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

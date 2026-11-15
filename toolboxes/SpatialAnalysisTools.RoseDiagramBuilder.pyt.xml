@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="RoseDiagramBuilder" displayname="Rose Diagram" toolboxalias="spatialbasic" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Bins directions into 8, 16 or 36 sectors (and optional magnitude classes) per group and writes a frequency table, a per-group summary (circular or axial mean, mean resultant length, Rayleigh test of uniformity, circular standard deviation, entropy), rose petals as polygons drawn around each group's anchor on the map, and an optional PNG of polar bar charts and an optional poster (a map of the features coloured by direction next to the rose). Directions come from a field (points, lines) or from the bearings of line segments, for example the dominant street orientation per district. The direction convention is chosen explicitly and repeated in every output row and in the PNG title. Calls nothing above a Basic licence (a Basic run is not proven), no extension.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Point or line features. Lines must be in a projected coordinate system (not degrees, not Web Mercator); points need a Direction Field. Selections and definition queries on a layer are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="direction_field" expression="direction_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Numeric field with the direction in degrees, read as set in Direction Convention. Required for points. For lines leave it empty to use the bearing of every segment. Example: a field WD with 270 in a row means 'a wind from the west' under AZIMUTH_FROM.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="convention" expression="convention">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Required, no default: what the numbers mean. The petal always points at the bearing (clockwise from north, north up).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;AZIMUTH_TO: degrees clockwise from north, the direction it points or travels TO. Example: 90 is a vehicle heading east, the petal points east.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;AZIMUTH_FROM: degrees clockwise from north, the direction it comes FROM (meteorological wind). Example: 270 is a wind blowing from the west, the petal points west. Lines are read from the last vertex back to the first.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;ARITHMETIC: degrees counter-clockwise from east (the maths angle), turned into a bearing as 90 minus the value. Example: 0 is east, 90 is north, 180 is west.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The choice is repeated in every output row.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="axial" expression="axial">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Check when a direction and its opposite are the same thing: streets, faults, trends. Example: 10 and 190 degrees fall into the same bin and every bin is drawn twice, mirrored; the mean is an axial mean. Leave unchecked for real headings or winds, where 10 and 190 differ. For streets: check it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sectors" expression="sectors">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of sectors in 360 degrees: 8 (45 degrees each), 16 (22.5) or 36 (10). Axial data use half as many bins in 180 degrees.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sector_alignment" expression="sector_alignment">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;CENTERED_ON_NORTH: sector 0 is centred on north (16 sectors: 348.75 to 11.25 degrees), so N, E, S and W are sector centres. STARTS_AT_NORTH: sector 0 starts at north (0 to 22.5).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="group_field" expression="group_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional field; one rose per value, for example a district. Without it there is one group, ALL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="magnitude_field" expression="magnitude_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional numeric field (wind speed, ...) used to stack petals by class. Needs Class Breaks.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="class_breaks" expression="class_breaks">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Increasing class limits such as 2,5,10 (up to 7 breaks). Example: 2,5,10 gives the classes &amp;lt; 2, 2 to &amp;lt; 5, 5 to &amp;lt; 10 and &amp;gt;= 10; a value equal to a break belongs to the upper class.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="line_mode" expression="line_mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lines without a Direction Field. PER_SEGMENT: the bearing of every straight segment (use this for streets). WHOLE_LINE: one bearing per line part, from its first to its last vertex (closed loops are skipped).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="weight_by_length" expression="weight_by_length">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lines: count each datum (segment, line part or line) by its length in metres instead of 1. On by default. Example: a 300 m street at 10 degrees and a 100 m street at 100 degrees give the weights 300 and 100; unchecked both count 1, and a street digitised with 40 vertices outweighs a straight one with 2 (the run warns). Ignored for points.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="anchor_mode" expression="anchor_mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Where each rose is drawn: GROUP_CENTROID, GROUP_EXTENT_CENTRE, FIELD_XY or SINGLE_POINT.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="anchor_x_field" expression="anchor_x_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FIELD_XY: numeric field with the X coordinate of the rose, in the coordinate system of the input (longitude in degrees for points in a geographic system; the tool projects it).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="anchor_y_field" expression="anchor_y_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FIELD_XY: numeric field with the Y coordinate of the rose, in the coordinate system of the input (latitude in degrees for points in a geographic system; the tool projects it).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="anchor_x" expression="anchor_x">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SINGLE_POINT: X coordinate in the coordinate system of the input (longitude in degrees for points in a geographic system; the tool projects it to the UTM zone it draws in).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="anchor_y" expression="anchor_y">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SINGLE_POINT: Y coordinate in the coordinate system of the input (latitude in degrees for points in a geographic system).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="petal_radius_m" expression="petal_radius_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Radius in metres of the largest petal; empty = automatic: 40 % of the smallest distance between two roses, or for one rose 10 % of the diagonal of the extent of the segment midpoints (WHOLE_LINE: of the chord midpoints; points: of the points), and 100 m when that extent is zero. A warning appears when the petals would be too small to see (below 0.01 m, or two roses much closer than the others).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="scale_mode" expression="scale_mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PER_GROUP (every rose the same size, to compare shapes) or ALL_GROUPS (one common scale, larger groups get larger roses).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output frequency table: one row per group, sector and class.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_summary" expression="out_summary">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output per-group summary table with the statistics.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_petals" expression="out_petals">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output polygon feature class with one polygon per petal.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_png" expression="out_png">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional PNG with one polar bar chart per group (needs matplotlib). The file always gets the .png extension; it must not be the same file as the Output Poster PNG (rose and rose.png are one file and are refused).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_poster" expression="out_poster">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional poster PNG (2400 x 1260 pixels, no basemap): left the features as a map coloured by direction bin, right the rose with the dominant orientation marked and the grid test; title, statistics and an honest footnote (n, units, source, convention, optimistic test). With a Group Field all groups are shown together. Needs matplotlib.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="poster_title" expression="poster_title">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional title of the poster, Latin letters, digits and punctuation (curly quotes and dashes are fine; at most 110 characters; default: 'Which way do the lines point?' when the directions come from the line geometry, else 'Which way do the features point?').&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="poster_source" expression="poster_source">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional source note for the footnote of the poster, for example 'Overture Maps roads 2026-10-21' (default: the name of the input).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="poster_theme" expression="poster_theme">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;DARK (default) or LIGHT colours of the poster.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="group_count" expression="group_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of groups (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="item_count" expression="item_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of directions used (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The tool calls nothing above a Basic licence and no extension; a run with a Basic licence is not verified.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Quick start, street orientation of a district: (1) project the streets to a metric projected system such as UTM (lines in degrees are refused); (2) Input Features = the streets, leave Direction Field empty; (3) Direction Convention = AZIMUTH_TO and tick Axial; (4) Number of Sectors = 36; (5) set the two output tables and, for a picture, Output Poster PNG; (6) run and read the grid angle in the messages (ORTHO_DIR in the summary table).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Convention (required, no default): AZIMUTH_FROM = degrees clockwise from north, the direction the value comes FROM (wind direction); AZIMUTH_TO = degrees clockwise from north, the direction it points TO (heading); ARITHMETIC = degrees counter-clockwise from east, converted to a bearing as (90 - value). Petals always point at the bearing: north is up on the map and in the PNG. For line bearings computed from geometry, AZIMUTH_TO is the direction from the first to the last vertex and AZIMUTH_FROM the reverse; AXIAL makes the two the same.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;AXIAL: a direction and its opposite are one axis (streets, faults, trends). Angles are folded into 0-180, the table has sectors/2 bins, every bin is drawn twice (opposite petals) and the mean is an axial mean (computed on the doubled angles). The summary also gives ORTHO_DIR and ORTHO_R: the angle (0-90) around which the axes cluster if the pattern is a square grid, and how strongly (computed on the quadrupled angles).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Sectors: CENTERED_ON_NORTH puts sector 0 on 0 degrees (N); STARTS_AT_NORTH starts it at 0. A sector includes its lower edge and excludes its upper edge; angles are wrapped before binning, so 360 is 0, and a bearing less than 1e-6 degrees below an edge counts as ON the edge (it belongs to the sector that starts there), which absorbs the rounding noise of stored coordinates.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Lines: without a Direction Field the bearing of every straight segment is computed (PER_SEGMENT), or one bearing per part from its first to its last vertex (WHOLE_LINE; closed loops have no chord and are skipped). Weight by Length (on by default) counts each datum with its length in metres (segment length, or the length of the part along its vertices) instead of 1; unweighted, a curved street with many vertices outweighs a straight one. Line input must be in a projected coordinate system whose units are not distorted (geographic and Web Mercator lines are refused: project them first, for example to UTM). Bearings are GRID bearings of that projection, measured from grid north, not true bearings. In a conformal projection (UTM and other Transverse Mercator, Lambert Conformal Conic, Mercator, Stereographic) they differ from true north by one angle at each place, the grid convergence, which is 0 on the central meridian of a Transverse Mercator zone and grows away from it. In a non-conformal projection (equal-area Albers, Lambert Azimuthal Equal Area, cylindrical equal area such as EASE-Grid 2.0, equidistant or sinusoidal) the difference also depends on the direction and right angles are not kept (a true 30 degree street reads 27.7 in EASE-Grid 2.0 at Riyadh). The tool measures this at the data from the projection itself, reports the convergence, and warns with the measured range when the system is not conformal there: project such lines to a conformal system (for example UTM) first.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Points need a Direction Field. Points in a geographic system are drawn in the UTM zone chosen from the data (the directions are used as stored); points spread over four or more UTM zones, or where the grid north of that zone differs from true north by 5 degrees or more, get a warning: roses far from the zone are misplaced and turned, so run each region separately. Points already in a projected system are drawn in it; where its grid north differs from true north by 5 degrees or more at the data (for example Antarctic Polar Stereographic, EPSG 3031, or a south-oriented Transverse Mercator, where it can reach 180 degrees) a warning says that petals of true bearings are turned by that angle on the map.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Rayleigh test: for every group the summary gives RAYLEIGH_Z = n_eff x RESULT_R squared and RAYLEIGH_P = exp(sqrt(1 + 4n + 4(n^2 - R^2)) - (1 + 2n)) with n = n_eff and R = n_eff x RESULT_R (Zar's approximation of the Rayleigh test of uniformity; axial: of the doubled angles). n_eff = (sum of weights)^2 / sum of squared weights, which is the number of items when every item counts 1. PREF_DIR is 1 when p is below 0.05, and the PNG and the messages show a mean direction only then; RESULT_R, n and p are always printed. When an axial group's grid test also rejects uniformity and ORTHO_R is above RESULT_R, the PNG and the messages name that stronger grid angle next to the axial mean (the poster headlines it). With fewer than 3 items the message says the test means little (Zar's approximation gives p = 0.47 for one item). The test assumes independent items; neighbouring street segments are not, so p is optimistic and R is the number to judge the strength by. ORTHO_P is the same test on the quadrupled angles (the square-grid angle).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Poster (Output Poster PNG): one picture of 2400 x 1260 pixels, no basemap. Left: the features as a map, every segment (or point) coloured by the bin of its direction, one hue per bin; points that share one location (repeated records of a station) are drawn as one small pie of their bins (slice = share of the points; above 300 such locations, one dot in the colour of the most frequent bin) and the footnote says how many points share how many locations. Right: the rose of the same data (petal area = length or count) with the dominant orientation marked. Above: the title (Poster Title), a callout (the grid angle where the grid test rejects uniformity and either the Rayleigh test does not or ORTHO_R is above RESULT_R, else the axial or circular mean where the Rayleigh test rejects uniformity, else no dominant direction) and the statistics. Below: a footnote with n and what it counts, units, source (Poster Source Note, default the input name), convention, weighting, bearing reference and the caveat that the Rayleigh and grid tests treat the items as independent, which neighbouring street segments are not, so they are optimistic. With a Group Field the poster describes all groups together. Magnitude classes are not shown (a petal is the total). Above 400,000 items the map shows a random sample (fixed seed) and the footnote says so; the rose and the numbers always use every item. Poster Theme: DARK or LIGHT. Needs matplotlib; without it a warning is given and nothing else changes. Titles and source notes must be Latin text: letters, digits and punctuation, including curly quotes, dashes and the ellipsis (matplotlib does not shape Arabic or other joined scripts).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Magnitude classes: give a numeric Magnitude Field and Class Breaks (for example 2,5,10) to stack the petals by class; a value equal to a break belongs to the upper class. Rows without a usable magnitude are left out and counted.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Petals: area is proportional to the weight of the sector (a count, or metres of line). A petal reaching cumulative weight c has radius R*sqrt(c/REF), where R is the Petal Radius in metres and REF the largest sector total of its group (PER_GROUP: every rose has the same size, to compare shapes) or of all groups (ALL_GROUPS: roses of larger groups are larger). The rule, R and REF are stored in every petal row (SCALE_RULE). Without a Petal Radius it is 40 % of the smallest distance between two roses (one rose: 10 % of the diagonal of the extent of the data locations, which are the segment or chord midpoints for lines and the points themselves; 100 m when that extent is zero, for example a single segment). A warning appears when the petals would be too small to see: a radius below 0.01 m, or an automatic radius set by two roses much closer than the others (closest distance below 2.5 % of the data diagonal and below a tenth of the typical spacing, diagonal / sqrt(number of roses)), for example concentric zones. Anchors: GROUP_CENTROID (weighted mean of the locations), GROUP_EXTENT_CENTRE, FIELD_XY (the first X/Y pair of the group in two fields) or SINGLE_POINT (every rose at one point). FIELD_XY and SINGLE_POINT coordinates are in the coordinate system of the input: for points in a geographic system they are longitude (X) and latitude (Y) in degrees, and the tool projects them to the UTM zone the roses are drawn in (values outside -180..180 / -90..90 are refused); ANCHOR_X/ANCHOR_Y in the summary are in the output system. A warning appears when a rose lies more than 10 times the size of the data extent outside the data.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Direction values outside -360 to 360 are wrapped and counted; a warning appears when 10 or more values all fit in one turn of radians: between 0 and 6.28, between -3.14 and 3.14 (signed radians, as from atan2) or any other range of at most 6.28 within -6.28..6.28 (radians?). Rows with no direction, magnitude or geometry are left out and counted. The input is never edited. Selections and definition queries on the input layer are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Built-in alternatives: ArcGIS Pro charts have no rose or direction chart; the wind rose report of Generate Desire Lines requires Business Analyst and Network Analyst.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Rose Diagram</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Bins directions into 8, 16 or 36 sectors (and optional magnitude classes) per group and writes a frequency table, a per-group summary (circular or axial mean, mean resultant length, Rayleigh test of uniformity, circular standard deviation, entropy), rose petals as polygons drawn around each group's anchor on the map, and an optional PNG of polar bar charts and an optional poster (a map of the features coloured by direction next to the rose). Directions come from a field (points, lines) or from the bearings of line segments, for example the dominant street orientation per district. The direction convention is chosen explicitly and repeated in every output row and in the PNG title. Calls nothing above a Basic licence (a Basic run is not proven), no extension.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>rose diagram</keyword>
+      <keyword>wind rose</keyword>
+      <keyword>orientation</keyword>
+      <keyword>circular statistics</keyword>
+      <keyword>basic</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

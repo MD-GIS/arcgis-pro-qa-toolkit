@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="CheckPointAccuracyReport" displayname="Positional Accuracy Report (NSSDA/ASPRS)" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Compares features (points, or lines and polygons by their centroid) with independent check points of higher accuracy and reports the positional accuracy twice, side by side: NSSDA (FGDC-STD-007.3-1998, accuracy at the 95 % confidence level) and ASPRS Positional Accuracy Standards for Digital Geospatial Data, Edition 2 (RMSEH, RMSEV, RMSE3D, with non-vegetated and vegetated vertical accuracy when a terrain class field is given). Writes a residual table, a summary table, a list of everything that could not be paired, true displacement lines, optional exaggerated display lines and an optional plot. Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The dataset under test: point, line or polygon features.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="in_checks" expression="in_checks">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Independent check points of higher accuracy than the dataset (point features).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="pair_method" expression="pair_method">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;KEY pairs by equal key text; NEAREST pairs by distance and reports ambiguity instead of guessing.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="feature_key" expression="feature_key">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Key field of the features. Required for KEY; for NEAREST it only labels the pairs: a pair whose keys differ is flagged KEY_DIFFERS, named in a warning and counted in the report, and stays in the statistics.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_key" expression="check_key">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Key field of the check points. Required for KEY.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="search_tolerance_m" expression="search_tolerance_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;NEAREST: the largest distance in metres between a check point and its feature. Required for NEAREST. A check point with no feature within it is not paired (NO_FEATURE_WITHIN_TOLERANCE) and is left out of every statistic; while any check point is not compared, no conformance or 'Tested' sentence is written. So the tolerance is not a blunder filter: make it larger than the largest error to find (at least 3 times the horizontal class).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="feature_z" expression="feature_z">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional elevation field of the features (needed for vertical accuracy).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_z" expression="check_z">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional elevation field of the check points (needed for vertical accuracy).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="z_unit" expression="z_unit">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Unit of both elevation fields: the horizontal unit (default), meters, international feet or US survey feet.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="terrain_field" expression="terrain_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional text field of the check points with NVA (non-vegetated) or VVA (vegetated). Other values are listed in the messages and counted in the overall statistics only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="standard" expression="standard">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Which statistics to compute: both side by side (default), NSSDA or ASPRS Ed. 2.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="h_class_cm" expression="h_class_cm">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;ASPRS horizontal accuracy class: the target RMSEH in centimeters. Enables the pass/fail result, and the conformance sentence after a PASS.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="v_class_cm" expression="v_class_cm">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;ASPRS vertical accuracy class: the target RMSEV (NVA) in centimeters.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_h_acc_cm" expression="check_h_acc_cm">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Survey accuracy of the check points (RMSEH2) in centimeters, combined into RMSEH. Leave empty if unknown; a result within the class is then FIT_PASS (the fit to the check points only), not PASS.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_v_acc_cm" expression="check_v_acc_cm">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Survey accuracy of the check point elevations (RMSEV2) in centimeters.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="nssda_h_limit_m" expression="nssda_h_limit_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional horizontal accuracy in meters the data claims at 95 %; the tool says whether the tested accuracy is within it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="nssda_v_limit_m" expression="nssda_v_limit_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional vertical accuracy in meters the data claims at 95 %.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="well_defined" expression="well_defined">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Tick only if the compared points are discrete, well-defined points (for example surveyed corners or marked targets), which is what NSSDA and ASPRS test. Without it the numbers are reported but no conformance or 'tested' sentence is written. The NSSDA 'Tested' sentence also needs at least 20 check points (NSSDA 3.2.2). Centroids of lines and polygons are never such points.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_residuals" expression="out_residuals">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table with one row per pair: coordinates, DX, DY, DR, AZIMUTH (degrees clockwise from grid north), elevations, DZ, TERRAIN, METHOD, FLAGS.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_summary" expression="out_summary">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table with one row per subset (ALL, and NVA and VVA when a terrain field is given): counts, mean, standard deviation, RMSE, NSSDA, ASPRS results, flags, unit, coordinate system and notes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_unpaired" expression="out_unpaired">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table of every check point that was not paired and every feature that was not paired for a reason that needs a look, with the reason. Features that merely have no check point are listed only when the option below is ticked.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="list_absent_features" expression="list_absent_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Off (default): features that merely have no check point (KEY: no check point with the key; NEAREST: no check point within the tolerance) are counted, in the messages and the N_NO_CHK column of the summary, but not listed. A large layer with a few hundred check points would otherwise bury the rows that matter. Check points, and features with a real problem (null geometry or key, duplicate, ambiguous), are always listed. On: every unpaired feature is listed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_vectors" expression="out_vectors">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional line feature class: the true displacement of each pair, from the check point to the feature point.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_display" expression="out_display">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional line feature class: the displacement lines stretched by the exaggeration factor, for display only (field DISPLAY_ONLY).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="display_exaggeration" expression="display_exaggeration">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Factor by which Output Display Lines and the plot arrows are stretched. Empty (default): automatic, the largest of 1, 2, 5, 10, 20, 50 ... that draws the median error at most about 3 % of the extent of the check points long and no error longer than 15 % of it (never below 1). The factor used is written to the messages, to EXAGG of the display lines and to the plot.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report: Summary sheet (statistics, statements) and Detail sheet (the residuals).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_plot" expression="out_plot">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional PNG with the residual vectors and a histogram of the horizontal error (needs matplotlib, which ArcGIS Pro includes). When the errors spread over less than 1 cm, the colour scale and the histogram are not stretched to that spread and the title gives the common value.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="pair_count" expression="pair_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of pairs (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Both inputs must be in the same projected coordinate system with a known linear unit (geographic degrees, an unknown system, Web and World Mercator and the world equidistant cylindrical (Plate Carree) systems are refused: the residuals are ground distances). The tool does no projection and no datum transformation. The coordinate system and the unit are written to the summary table and the report. A residual is feature minus check point.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Pairing. KEY: features and check points with the same key text are paired (exact match after trimming and Unicode normalisation; upper and lower case, inner spaces and leading zeros are not folded, and a hint is given when a key differs only that way). A key that occurs more than once on either side pairs nothing and every row carrying it is listed, even when one copy has no geometry. NEAREST: a check point is paired with the one feature within the search tolerance; when two or more features are in range, or two check points claim the same feature, nothing is paired and the candidates are listed as AMBIGUOUS. The tool never picks one. Unpaired rows of both sides, with the reason, are written to the unpaired table. A check point that is not paired for any reason except its own missing geometry is not compared: it is left out of every statistic, and while there is one no ASPRS conformance sentence and no NSSDA 'Tested' sentence is written (the values are given as computed).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Lines and polygons are represented by their centroid (length-weighted for lines, area-weighted for polygons; the centroid of a concave polygon can lie outside it). A centroid is not a well-defined point, so such a comparison measures agreement of the centroids and is not an NSSDA test of well-defined points; the METHOD field says how each point was made.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Statistics. RMSE uses the divisor n. NSSDA horizontal: Accuracy_r = 2.4477 * 0.5 * (RMSEx + RMSEy) when RMSEmin/RMSEmax is between 0.6 and 1.0 (Appendix 3-A, Case 2); outside that range the standard gives no formula and the value is left empty, with the Case 1 value 1.7308 * RMSEr (valid if RMSEx = RMSEy) shown for reference only. NSSDA vertical: 1.9600 * RMSEz. ASPRS Ed. 2: RMSEH = sqrt(RMSEx^2 + RMSEy^2), RMSEV = RMSEz, RMSE3D = sqrt(RMSEH^2 + RMSEV^2), each combined with the survey accuracy of the check points (RMSE2) when given; otherwise the result is the fit to the check points only and says so. The check counts are flagged against the published minimums (NSSDA 20, ASPRS 30), the mean error against 25 % of the class (ASPRS 7.2) and single discrepancies above 3 times the class (blunders). VVA is reported and has no pass/fail threshold. Every constant, formula and page is listed in docs/standards.md.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Elevations are read from fields (no surface is sampled) and are used as stored: the tool cannot check that both heights refer to the same vertical datum. The unit of the elevations is the horizontal unit unless Elevation Unit says otherwise.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Display lines run from the check point to the feature point. Output Displacement Lines hold the true displacement; Output Display Lines are stretched by the exaggeration factor for map display only (field DISPLAY_ONLY; in a shapefile folder the name is cut to DISPLAY_ON) and must not be measured. In a folder (dBASE, shapefile) empty numbers are stored as 0, with a warning.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on the input layers are honoured. The inputs are never modified. Existing outputs are replaced only when geoprocessing is allowed to overwrite outputs.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Positional Accuracy Report (NSSDA/ASPRS)</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Compares features (points, or lines and polygons by their centroid) with independent check points of higher accuracy and reports the positional accuracy twice, side by side: NSSDA (FGDC-STD-007.3-1998, accuracy at the 95 % confidence level) and ASPRS Positional Accuracy Standards for Digital Geospatial Data, Edition 2 (RMSEH, RMSEV, RMSE3D, with non-vegetated and vegetated vertical accuracy when a terrain class field is given). Writes a residual table, a summary table, a list of everything that could not be paired, true displacement lines, optional exaggerated display lines and an optional plot. Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>accuracy</keyword>
+      <keyword>NSSDA</keyword>
+      <keyword>ASPRS</keyword>
+      <keyword>RMSE</keyword>
+      <keyword>check points</keyword>
+      <keyword>positional accuracy</keyword>
+      <keyword>QA</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

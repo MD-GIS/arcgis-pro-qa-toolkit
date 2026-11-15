@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="BilingualNameQA" displayname="Arabic-English Name Check" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks an English and an Arabic name field side by side: missing names, Arabic letters in the English field, Latin text in the Arabic field, swapped values, Arabic-Indic or Persian digits in English or mixed digit systems, and names that are translated inconsistently (the same English name with different Arabic names, or the reverse). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layer or table with the two name fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="english_field" expression="english_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text field with the English (Latin script) name.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="arabic_field" expression="arabic_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text field with the Arabic name.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="checks" expression="checks">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks to run. Default: all. If none is chosen, all five are run (a message says so).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="allow_latin_codes_in_arabic" expression="allow_latin_codes_in_arabic">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Accept short codes of up to 6 Latin letters and digits (ASCII, Arabic-Indic or Persian) that contain a digit (for example A1, M4, M٤) inside Arabic names. Short Arabizi words with a digit ("3ali", "Ta7lia") also look like codes and pass; uncheck this for data that may hold Arabizi.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="normalise_arabic" expression="normalise_arabic">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fold Arabic letter variants (alef forms, yeh, Persian yeh and keheh, presentation forms, tashkeel, tatweel), Arabic-Indic and Persian digits and invisible marks before comparing Arabic names for INCONSISTENT_PAIR.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="same_as_english" expression="same_as_english">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Accept an Arabic value that is the same as the English value of its row (a brand name kept in Latin, for example KFC) instead of reporting WRONG_SCRIPT_AR.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="latin_names" expression="latin_names">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Latin names accepted as the whole Arabic value in any row (brand names such as Starbucks). Compared ignoring case, invisible marks, and spaces at the ends or repeated ("Star bucks" is not "Starbucks").&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="placeholders_as_missing" expression="placeholders_as_missing">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Report a placeholder name (for example "-", "N/A", "NA", "x", "null", "unknown", "0", "...", the Arabic question mark, Arabic "unknown" or "none", a value without letters or digits) as MISSING_EN or MISSING_AR and leave it out of the other checks.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table: SRC_OID, FIELD, VALUE, ISSUE, DETAIL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report with Summary and Detail sheets.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of issues found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Spaces, punctuation and digits never decide the script. Arabic presentation forms and Persian letters count as Arabic; fullwidth Latin letters (ＫＦＣ) count as Latin, mathematical Latin letters do not; zero-width non-joiners inside Arabic names are accepted. Invisible marks that copy and paste leaves behind (left-to-right and right-to-left marks, zero-width space, soft hyphen, byte order mark) are ignored when names are compared.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A brand name that stays in Latin in the Arabic field (KFC) is reported as WRONG_SCRIPT_AR unless you accept it: check Accept Latin names equal to the English name (the Arabic value is the same as the English value of its row) and/or list the names in Latin names accepted in the Arabic field. A swap whose Latin side is accepted this way is reported as WRONG_SCRIPT_EN only. SWAPPED needs a wholly Arabic English value and a wholly Latin Arabic value; a mixed English value such as "Al Baik &amp;lt;Arabic&amp;gt;" with a Latin Arabic value is reported as WRONG_SCRIPT_EN and WRONG_SCRIPT_AR.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Inconsistent pairs compare names in Unicode canonical composition (NFC, so a decomposed spelling equals the precomposed one): English names with spaces trimmed and repeated spaces collapsed, ignoring case, and Arabic names after optional Arabic letter folding (alef forms, yeh, tashkeel, tatweel; teh marbuta and heh, and the seats of hamza, are NOT folded). Typographic apostrophes, quotes and dashes in English names are compared as their ASCII forms (King’s = King's). The DETAIL of an inconsistent pair counts the different names after this comparison and lists the first 10 (alphabetically), each by one of its spellings; when the raw spellings are more, their number is added, e.g. "2 different Arabic names (3 spellings)". Generic names ("Mosque", "School") can form very large groups; this is by design, and the DETAIL stays short.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Placeholders (for example "-", "N/A", "NA", "x", "0", "...", "؟", tatweel only; the full list is in the tool page) are names to this tool unless you check Treat placeholders as missing: they are then MISSING_EN or MISSING_AR and left out of the other checks. As names, they go through every other check, and rows that share one are grouped for INCONSISTENT_PAIR: "-" as the English name of rows with different Arabic names makes them one group (a warning names such placeholders), and "-" as the Arabic name of one "Park" row makes it differ from the other "Park" rows (a second warning names such placeholders). Digits: Arabic-Indic or Persian digits in the English name, and two digit systems (ASCII, Arabic-Indic, Persian) in the Arabic name, are MIXED_DIGITS; the DETAIL names the digit systems found. A code inside an Arabic name may use ASCII, Arabic-Indic or Persian digits (M4 and M٤ are both codes), and its digits count for MIXED_DIGITS: "طريق A1 رقم ٥" mixes ASCII and Arabic-Indic digits.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;In a dBASE table or shapefile output (text fields of at most 254 bytes in UTF-8; an Arabic letter takes 2 bytes, a character above U+FFFF is counted as 6) a longer FIELD, VALUE or DETAIL is cut to 254 bytes (never in the middle of a letter) and a warning says how many values were cut; the report keeps the full text (an Excel cell holds at most 32,767 UTF-16 units: a character above U+FFFF, such as an emoji, counts 2, and a control character counts as the 8 characters &amp;lt;U+XXXX&amp;gt; it is written as; a longer value is cut there, with a warning; a CSV report keeps the full length, but a value that starts with =, @, a tab or a carriage return, or with + or - followed by something that is not a plain number ("--", "-Olaya"), is written with a leading apostrophe so that a spreadsheet does not run it as a formula). SRC_OID is a Long field while every ObjectID fits 32 bits; with 64-bit ObjectIDs it is a Big Integer field in a geodatabase or GeoPackage (an ObjectID above 2^53 - 1, which ArcGIS Pro cannot store there, stops the run with the fix) and, in a dBASE table, a Double field while every ObjectID has at most 12 significant digits (a dBASE Double keeps no more) and else a text field of 20 characters with every digit kept, with a message. If writing the output fails part-way, the unfinished table is deleted.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on the input layer are honoured. The tool never edits data.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Arabic-English Name Check</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks an English and an Arabic name field side by side: missing names, Arabic letters in the English field, Latin text in the Arabic field, swapped values, Arabic-Indic or Persian digits in English or mixed digit systems, and names that are translated inconsistently (the same English name with different Arabic names, or the reverse). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>Arabic</keyword>
+      <keyword>bilingual</keyword>
+      <keyword>names</keyword>
+      <keyword>script</keyword>
+      <keyword>validation</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

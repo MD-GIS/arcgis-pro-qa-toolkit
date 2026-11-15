@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="WorkspaceCrsInventory" displayname="Workspace and CRS Inventory" toolboxalias="projectadmin" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lists every feature class (and optionally every table) in one or more folders and geodatabases in one table: data type, shape type, Z/M, row count, coordinate system name, WKID and type, with flags for undefined coordinate systems, shapefiles without a .prj file, empty datasets, feature classes whose system differs from their feature dataset (an abnormal state), and datasets that cannot be read. The report summarises the distinct coordinate systems of each folder or geodatabase and marks containers with mixed systems.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_workspaces" expression="in_workspaces">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Folders and/or geodatabases to inventory.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="recursive" expression="recursive">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Search sub-folders of the chosen folders (default on).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="include_tables" expression="include_tables">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Also list stand-alone tables (default off).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="count_rows" expression="count_rows">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Count the rows of every dataset (default off; slow on large enterprise data).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;New geodatabase table with one row per dataset (NOTE holds the reason of an UNREADABLE row).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report: Summary sheet per folder or geodatabase (distinct coordinate systems, MIXED_CRS) and Detail sheet with every dataset. It must be outside the folders being inventoried.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="flag_count" expression="flag_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of datasets with at least one flag (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The tool is read-only: it changes no data and it projects or defines nothing (opening a geodatabase makes ArcGIS Pro add small internal files). Its inputs are folders and geodatabases, not layers.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Folders are searched with arcpy.da.Walk. Rasters are listed in the report as skipped. Connection files (.sde) found inside a scanned folder are not followed. A GeoPackage, GeoJSON, SQLite, KML, GML or mobile geodatabase file in a scanned folder whose content the search does not list is named in a warning (in ArcGIS Pro 3.3.2 the search did list a mobile geodatabase). Add the .sde, .gpkg or .geodatabase file itself as an input.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Flags: UNDEFINED_CRS (system Unknown), MISSING_PRJ (shapefile without a .prj file), EMPTY (no rows; needs Count Rows), FDS_MISMATCH (abnormal state) and UNREADABLE (the reason is in NOTE; the run goes on). The report marks MIXED_CRS for a folder or geodatabase that holds two or more different defined systems. Systems are compared by WKID (102100, 102113, 900913 and 3785 count as 3857). Custom systems are compared by name and what ArcGIS reports of them, so differences only in projection parameters are not told apart.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The output table and the report must be outside every scanned folder, and the output must be a geodatabase table (dBASE is refused). The tool does not poll for Cancel.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Not verified: a Basic licence and enterprise geodatabases. Details, test status and limits are on the documentation page.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Workspace and CRS Inventory</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lists every feature class (and optionally every table) in one or more folders and geodatabases in one table: data type, shape type, Z/M, row count, coordinate system name, WKID and type, with flags for undefined coordinate systems, shapefiles without a .prj file, empty datasets, feature classes whose system differs from their feature dataset (an abnormal state), and datasets that cannot be read. The report summarises the distinct coordinate systems of each folder or geodatabase and marks containers with mixed systems.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>inventory</keyword>
+      <keyword>coordinate system</keyword>
+      <keyword>projection</keyword>
+      <keyword>spatial reference</keyword>
+      <keyword>audit</keyword>
+      <keyword>workspace</keyword>
+      <keyword>catalog</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

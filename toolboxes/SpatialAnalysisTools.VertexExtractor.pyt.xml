@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="VertexExtractor" displayname="Vertex Extractor" toolboxalias="spatialbasic" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Writes the vertices of line or polygon features as points, each with its source ObjectID, part and ring number, index from the start and from the end (IDX 0 = first vertex, IDX_NEG -1 = last vertex), distance along the part or ring in metres and the signed turning angle in degrees. Extract every vertex or only chosen positions such as the first and last ("0,-1"). Designed for a Basic licence: no Standard or Advanced tool is used.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Line or polygon features.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vertices" expression="vertices">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;ALL, or whole numbers such as 0,-1 (first and last). Write plain digits: 1,000 is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output point feature class: SRC_OID, PART, RING, IDX, IDX_NEG, DIST_ALONG (m), TURN_DEG, X, Y.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="copy_attributes" expression="copy_attributes">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Also copy the input attributes to every vertex point.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="vertex_count" expression="vertex_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of vertex points written (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Vertices: ALL (or empty), or a list of whole numbers such as 0,-1,2. A comma, semicolon, space or the Arabic comma and semicolon separate items; a minus sign pasted from a document is accepted, and invisible marks pasted with Arabic text (right-to-left mark, zero-width space and similar) are ignored. Write plain digits: 1,000 is refused (it would be two items), and so are leading zeros and 1_0. A list such as 1,250 or 1 250 (a space or no-break space as the thousands separator) is read as vertices 1 and 250, with a warning; a first group that starts with 0, as in 0,100, is a plain list and gets no warning. A value with no number in it is refused; write ALL in Latin letters for every vertex. Negative indexes count from the end of each part or ring (-1 = last vertex). An index that does not exist in a part or ring is skipped there; a message names each such index and the number of parts (lines) or rings (polygons, holes included) that lack it, for example "Index 5 does not exist in 1000 of 1000 ring(s)".&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Lines: every path is a part (PART 1-based, RING empty). A closed line keeps its start and end vertex. TURN_DEG is empty at both ends of a line.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Polygons: PART is 1-based, in the order the outer rings are stored; RING is 0-based within the part (0 = outer ring, 1, 2, ... = holes). Polygons are read as stored and not repaired: in a polygon that is not simple (for example an outer ring stored counter-clockwise) a hole can be numbered as a part of its own, after all clockwise outer rings; run Repair Geometry first on such data. The closing vertex is not written twice; the turning angle at vertex 0 uses the last vertex as its predecessor. A closing vertex stored twice is written once more, as the last vertex, with an empty TURN_DEG, and vertex 0 then has an empty TURN_DEG too. Outer rings run clockwise, so convex corners have negative (right) turns.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;TURN_DEG: change of direction in degrees, positive = left turn, 0 = straight on, empty where a neighbouring segment has zero length (duplicate vertex).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A shapefile cannot store an empty number: in a folder output empty TURN_DEG and RING values are stored as 0, and the run warns about it. Use a file geodatabase output to keep them empty.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Distances and angles are measured in metres in a projected system chosen from the data: the input system when it is projected and measures true metres where the data is, else the matching UTM zone (on the input's own datum when EPSG defines one, else the WGS 84 zone with a warning that no datum transformation is applied). A projected input is tested at sample vertices spread over the whole layer (in each of 16 x 16 cells of its extent that holds data), so features far from the others are tested too: when one unit of it is more than 0.5 % away from a metre on the ground, or it bends angles by more than 0.5 degrees (world systems such as Mollweide, Plate Carree, Equidistant Cylindrical or Robinson, or a regional system used far from its area), each feature is measured on its own Transverse Mercator projection instead, and a message says so. A projected system without a WKID (a custom projection) is tested through its WKT; if no sample can be projected, it is used as is with a warning. Web Mercator inputs are re-projected to the UTM zone. The chosen UTM zone of a geographic or Web Mercator input is tested the same way, so a feature near the edge of a layer two or three zones wide (where one UTM zone measures up to about 1 % long) is measured feature by feature too. Geographic (or Web Mercator) data wider than 3 UTM zones, polar data (beyond 84N / 80S) and input in a polar stereographic system are also measured feature by feature (Transverse Mercator centred on the feature, or polar stereographic with true scale at the feature; WGS 84 ellipsoid). A feature that cannot be projected is skipped with a warning. The points, X and Y are in the input coordinate system; an output in a feature dataset with another coordinate system is refused. Features with true curves are skipped and listed. Z and M values are dropped.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Copy Attributes: a copied field keeps its field-level domain when the output geodatabase has it (a warning names the fields that lose it); subtypes are not carried. Fields of a type the tool cannot create (for example Time Only, Timestamp Offset, Blob, Raster) are not copied, and a warning names them. In a shapefile output a GUID field is written as text of 38 characters, a Big Integer field as text of 20 characters (every digit kept) and a Date Only field as a date field, with a message for each; a warning names copied date fields whose time of day may be lost. A shapefile text field holds at most 254 bytes in UTF-8 (an Arabic letter takes 2 bytes, so about 127 Arabic letters); a longer copied value is cut at a character boundary and ends with ' ...[cut]', and a warning counts the cut values per field; use a file geodatabase output to keep the full text. A shapefile field name holds at most 10 bytes (5 Arabic letters): a message lists every copied field whose name is cut or changed in the output.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on the input layer are honoured. The input is never edited. If an arcpy error stops the run while the output is written, the output this run created is deleted and the messages collected so far are shown before the error.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Built-in alternatives: Feature Vertices To Points needs an Advanced licence. On Basic, Add Geometry Attributes (LINE_START_MID_END) and Generate Points Along Lines give start, middle and end points but not every vertex with its index and angle. Outside Esri's tools, QGIS (Extract specific vertices; its angle is the bisector angle at the vertex, not a signed turn) and the free npGeom toolbox for ArcGIS Pro (Vertices to points) exist too, and the paid XTools Pro add-in (Convert Features to Points, All points; an ID field only).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Vertex Extractor</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Writes the vertices of line or polygon features as points, each with its source ObjectID, part and ring number, index from the start and from the end (IDX 0 = first vertex, IDX_NEG -1 = last vertex), distance along the part or ring in metres and the signed turning angle in degrees. Extract every vertex or only chosen positions such as the first and last ("0,-1"). Designed for a Basic licence: no Standard or Advanced tool is used.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>vertices</keyword>
+      <keyword>points</keyword>
+      <keyword>angle</keyword>
+      <keyword>index</keyword>
+      <keyword>basic</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="TypedExcelImport" displayname="Excel Import with Field Types" toolboxalias="datamgmt" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Imports one sheet of an Excel workbook (.xlsx) or a CSV file into a new table with the field type you choose for each column (TEXT, SHORT, LONG, BIGINTEGER, DOUBLE, DATE), or with inferred types that keep leading zeros: a code such as 007 stays text when the cell holds the text 007 or a number shown with a zero-padded format (000). Cells that do not fit their type are listed in a reject table instead of being silently changed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_file" expression="in_file">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Excel workbook (.xlsx) or CSV file (.csv) to import.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sheet" expression="sheet">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Worksheet to import (default: the first worksheet in workbook order, even when it is hidden; chart sheets are skipped). A name that is not in the workbook is refused. Ignored for CSV.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="header_row" expression="header_row">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Row number that holds the column names (default 1). Rows above it are ignored.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="field_specs" expression="field_specs">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional. One row per column to import: Column (header text), Field name (default: the header), Type (TEXT, SHORT, LONG, BIGINTEGER, DOUBLE, DATE, or INFER for the inferred type; ArcGIS Pro refuses an empty Type) and Length (TEXT only, in characters; default: longest value). When rows are given, only those columns are imported.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="on_error" expression="on_error">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SKIP_ROW (default): a row with any value that does not fit its type is not imported. NULL_CELL: the row is imported with that value set to null. Either way every such value is listed in the reject table.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;New output table: the imported fields plus SRC_ROW.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_rejects" expression="out_rejects">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional table of rejected values: SRC_ROW, COLUMN_NAME, VALUE, REASON (NOT_AN_INTEGER, NOT_A_NUMBER, NOT_A_DATE, TOO_LONG, OUT_OF_RANGE, FORMULA_NO_CACHED_VALUE, EXCEL_ERROR) and ACTION (ROW_SKIPPED, SET_NULL, KEPT_NULL).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) report: Summary (counts and the column plan) and Detail (rejected values). Two CSV files are written instead when .csv is chosen or openpyxl is not available.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="row_count" expression="row_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of rows written to the output table (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;QUICK START: choose the file, the output table and (optionally) a reject table, and run. Every column is imported with an inferred type. To fix a type, add a Field Specifications row for the column (Column, Field name, Type, Length), each column once; then only the listed columns are imported. Type INFER imports a listed column with its inferred type (to rename it or to pick a subset of columns); ArcGIS Pro refuses an empty Type cell with ERROR 000800, in the dialog and in a script. On Error decides whether a row with a bad value is skipped (SKIP_ROW) or imported with that value empty (NULL_CELL); either way the value is listed in the reject table.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;INFERRED TYPES (no Field Specifications, or Type INFER), in this order: any non-numeric text -&amp;gt; TEXT. Identifier-like numeric text -&amp;gt; TEXT: a leading + (+966501234567), a leading zero before a digit (007), or whole-number text with more than 15 significant digits. A workbook cell that Excel holds as text and that looks like a number -&amp;gt; TEXT when its number format is Text (@) or when a number would show it differently (1.10, 7.00, 1E5); other such cells (12, 5.5) are read as numbers and the run reports how many cells were text, so you can give the column the type TEXT. Whole numbers -&amp;gt; LONG; whole numbers beyond LONG up to 2^53 - 1 -&amp;gt; BIGINTEGER (a 64-bit field; ArcGIS Pro 3.2 or later and not in a dBASE output, where such columns become DOUBLE); other numbers -&amp;gt; DOUBLE; dates -&amp;gt; DATE (always a Date field with 00:00:00, not Date only). Decimal text stays a number at any length: digits beyond about 15-17 significant digits are rounded to the nearest DOUBLE, so give such a column the TEXT type if every digit matters. A number CELL holds only the digits Excel stored (Excel keeps 15 significant digits, so 1234567890123456789 typed as a number is stored and imported as 1234567890123450000): type long identifiers as text in Excel. A number too large for its field (more than 400 digits, or beyond about 1.8E+308 for DOUBLE) gives OUT_OF_RANGE, and so does a nonzero number too small for a DOUBLE (1e-400), which would be 0.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;LEADING ZEROS: a cell that holds the text 007 keeps it. A whole number shown only through a zero-padding number format (Excel 000 or 00000) is read as the digits Excel shows (7 with 000 -&amp;gt; 007, with an info message per column), so the column infers TEXT; give it SHORT/LONG/DOUBLE to import the number instead. Literal text in such a format ("ID "000) is not added; other number formats (0.00, #,##0, 00000-0000) are not applied.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;TEXT READ AS NUMBERS OR DATES: numbers with a point as the decimal separator (the decimal digits of every script, such as Arabic-Indic, fullwidth or Devanagari, count like Latin digits, so a fullwidth 007 keeps its leading zero; the Arabic decimal separator is accepted), without thousands separators, so 1,5 and 1,234 are text; dates only as ISO text (2024-01-31 or 2024-01-31 14:30), so 31/01/2024 is text (NOT_A_DATE for a DATE column). Excel TRUE/FALSE cells are imported as the text True / False. A duration cell ([h]:mm:ss) is imported as the text H:MM:SS. A time-of-day cell (08:30) is imported as the text HH:MM:SS (a column of them infers TEXT); a DATE column rejects it as NOT_A_DATE.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;READING: openpyxl, which ships with ArcGIS Pro, reads the results Excel last calculated. A formula without a stored result is imported as null and listed as FORMULA_NO_CACHED_VALUE; an Excel error value (#N/A, #DIV/0!, ...) as null and EXCEL_ERROR. Chart sheets are not offered. A sheet name that is not in the workbook is refused. Old .xls files and files that are not workbooks are refused with a fix. CSV files must be UTF-8 (a file in UTF-16, with or without a BOM, or in a code page such as Windows-1256 is refused: save it as CSV UTF-8); the delimiter (comma, semicolon, tab or bar) is chosen from the header record (Header Row) and the next records, and a tie is warned.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;DATE columns accept date cells, Excel serial day numbers (1900 or 1904 date system of the workbook; a column of numbers that are all before 1910, such as years, is warned) and ISO text. Merged cells give their value to the first cell only. Hidden and filtered rows are imported like other rows. Blank rows are skipped. Each output row keeps its sheet row number in SRC_ROW (CSV: the record number, first line = 1). A column whose header is a name the output reserves (OBJECTID, OID, FID, SHAPE, SRC_ROW) is imported under a free name such as OBJECTID_1, with a message; Shape_Length and Shape_Area keep their names (a table has no geometry fields). The tool writes new tables only.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;DBASE (an output in a folder): empty numbers are written as 0, with a warning naming the fields; text fields are as wide as the UTF-8 bytes of their longest text (an Arabic letter takes 2 bytes; more than 254 bytes is refused); a field name Field1 and more than 253 columns are refused; rejected texts longer than 254 bytes are cut in a dBASE reject table; a DATE field keeps the date only and the time of day is lost, so the tool warns when it writes dates with a time of day; DOUBLE values can differ in the last digits. Write to a file geodatabase to keep all of these exact. A Length counts characters (Unicode code points: accent and vowel marks count); in a geodatabase a text field is widened for characters such as emoji, which count 2.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Excel Import with Field Types</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Imports one sheet of an Excel workbook (.xlsx) or a CSV file into a new table with the field type you choose for each column (TEXT, SHORT, LONG, BIGINTEGER, DOUBLE, DATE), or with inferred types that keep leading zeros: a code such as 007 stays text when the cell holds the text 007 or a number shown with a zero-padded format (000). Cells that do not fit their type are listed in a reject table instead of being silently changed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>Excel</keyword>
+      <keyword>CSV</keyword>
+      <keyword>import</keyword>
+      <keyword>field types</keyword>
+      <keyword>leading zeros</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

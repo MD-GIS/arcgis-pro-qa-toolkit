@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="MapSeriesIndexIntegrity" displayname="Map Series Index Check" toolboxalias="cartoqa" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks the index layer of a map series before export: page names that are missing, duplicated or unusable as file names, duplicated or missing page numbers, pages with no data and data on no page, and adjacency fields (N, NE ... NW) that point to missing pages or are not returned by the neighbour. Optionally proposes page orientation and a standard scale per page, and lists page ranges per group (for example per district). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="index_layer" expression="index_layer">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Polygon index layer of the map series.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="page_name_field" expression="page_name_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Field with the page name.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="page_number_field" expression="page_number_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional field with the page number. Enables the number checks; adjacency values may then refer to page numbers (see the usage).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_number_gaps" expression="check_number_gaps">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Report every whole number missing between the smallest and the largest page number (default on). Turn it off for a series that skips numbers on purpose; duplicate numbers and pages without a number are still reported. Needs a Page Number Field.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="data_layers" expression="data_layers">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional layers whose features must be covered by the pages (EMPTY_PAGE for a page with no data feature, OUTSIDE_ALL_PAGES). A page with no geometry is EMPTY_PAGE also without Data Layers. Each feature is checked once: a layer listed twice, or next to its data source, gives one row per feature (a warning says so).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="adjacency_fields" expression="adjacency_fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional table of Direction (N, NE, E, SE, S, SW, W, NW) and the field holding the neighbour in that direction. Leave empty to detect text or integer fields named &amp;lt;prefix&amp;gt;_N ... &amp;lt;prefix&amp;gt;_NW (a prefix needs at least one opposite pair, e.g. _N and _S). A typed exact field name always means that field; other text is looked up by alias, then by name.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="plan_pages" expression="plan_pages">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Propose orientation and scale per page (writes Output Page Plan).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="frame_width_m" expression="frame_width_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Width of the layout map frame on paper, in metres (e.g. 0.25; a side above 2 m gets a warning: 25 cm is 0.25).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="frame_height_m" expression="frame_height_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Height of the layout map frame on paper, in metres (e.g. 0.18). Width and height may be given in either order; both orientations are tried.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="margin_pct" expression="margin_pct">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Margin kept free inside the frame, in percent of the frame (default 10).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="standard_scales" expression="standard_scales">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Scale denominators to choose from, separated by semicolons (e.g. 1250;2500;5000). Whole numbers only (SCALE is a whole number), written without a thousands separator: 1250.5, 1,250 or 1 500 is refused. The run lists the scales it used.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="group_field" expression="group_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional index field (for example DISTRICT) for the page-range table. Groups show the stored values (codes for a coded-value domain).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output issue table: PAGE_OID, PAGE_NAME, PAGE_NUMBER, ISSUE, DETAIL, LAYER, SRC_OID. One row per page (or data feature, or missing number) and issue. In a dBASE table (folder output) empty numbers are stored as 0; the run then says so.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_plan" expression="out_plan">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output copy of the pages with PAGE_OID, their attributes, ORIENT (PORTRAIT/LANDSCAPE), SCALE_NEEDED, SCALE and ROTATION (degrees counterclockwise from grid east of the measuring system). Required with Plan Pages. Not in a feature dataset with another coordinate system than the index layer.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_ranges" expression="out_ranges">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table GROUP_NAME, PAGES (for example "1-2, 5") per value of the group field. Required with a group field.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) report: Summary (counts per issue; with Plan Pages also the pages planned with a SCALE, with no fitting standard scale and not planned) and Detail (the issues). Two CSV files are written instead when .csv is chosen or openpyxl is not available.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Quick start: choose the Index Layer (the pages of the map series), its Page Name Field and an Output Issue Table. Add the Page Number Field to check numbers and the Data Layers to find empty pages and data on no page. Neighbour fields named like PageName_N ... PageName_NW (as Calculate Adjacent Fields writes them) are found by themselves. The page plan, the page ranges and the Excel report are optional. Read-only: the inputs are never modified.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Licence: the Basic licence is NOT VERIFIED. Outputs in an enterprise geodatabase need a Standard licence (Esri licence levels: creating tables or feature classes there is Standard); at Basic write to a file geodatabase, a GeoPackage or a folder.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Names: DUPLICATE_NAME compares names as Windows compares file names (case ignored, trailing spaces dropped; a leading space or a no-break space is kept). ILLEGAL_NAME: &amp;lt; &amp;gt; : " / \ | ? *, control characters (codes 1-31), a trailing dot or space, more than 255 characters, or a reserved device name (CON, PRN, AUX, NUL, COM1-9, LPT1-9, also with an extension; a no-break space after it makes a legal name). In a folder (dBASE) issue table, text over 254 bytes is cut and ends with ...[cut] (the Excel report keeps it whole).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Numbers: duplicates, pages without a number and every whole number missing between the smallest and the largest (switch Check for Gaps in Page Numbers off for a series that skips numbers on purpose). Numbers compare by value ("3", 3 and 3.0 are the same); text page numbers compare trimmed and ignoring case ("1a" and "1A" are DUPLICATE_NUMBER).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Coverage: a line or polygon counts on a page only if it runs through the page's interior (a road exactly on a page edge is OUTSIDE_ALL_PAGES, and the detail says so); a point counts on the boundary too; a multipoint counts if any of its points is on a page. Pages must be single convex polygons (rectangles).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Adjacency: if page X has E = Y, page Y must exist once (else MISSING_NEIGHBOUR) and Y's W field must point back to X (else NON_RECIPROCAL). Values refer to page names, or to page numbers when a page number field is set and the fields or values say so, or to another index field the fields are named after (PageNumber_E; a message tells which). A value 0 that matches no page means no neighbour (a numeric field cannot be empty in a dBASE table).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries are honoured; with a selection on the index layer only the selected pages get rows. A page outside the selection that is not convex is left out of the coverage check (a message lists it); a data feature on none of the checked pages but within the outline of such a page is OUTSIDE_ALL_PAGES with a DETAIL naming that page (it may be on it), with a warning. The page plan, the measuring systems, folder (dBASE) outputs and every limit are described on the tool's page docs/tools/MapSeriesIndexIntegrity.md.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Map Series Index Check</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks the index layer of a map series before export: page names that are missing, duplicated or unusable as file names, duplicated or missing page numbers, pages with no data and data on no page, and adjacency fields (N, NE ... NW) that point to missing pages or are not returned by the neighbour. Optionally proposes page orientation and a standard scale per page, and lists page ranges per group (for example per district). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>map series</keyword>
+      <keyword>map book</keyword>
+      <keyword>index</keyword>
+      <keyword>QA</keyword>
+      <keyword>page names</keyword>
+      <keyword>adjacency</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

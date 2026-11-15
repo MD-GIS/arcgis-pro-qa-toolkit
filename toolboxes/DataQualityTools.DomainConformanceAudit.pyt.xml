@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="DomainConformanceAudit" displayname="Domain Audit" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks every value of every domain field against the domain that applies to its row (subtype-level domains win), explains each violation (description typed as code, case or space variant, out of range, unknown subtype) with a suggested code, and audits the domains themselves (unused domains, duplicate descriptions, codes never used, type mismatches). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_tables" expression="in_tables">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layers or tables to check. Leave empty when Input Workspace is used.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="in_workspace" expression="in_workspace">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Geodatabase whose feature classes and tables are all checked. Leave empty when Input Tables is used.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="fields" expression="fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fields to check (only when exactly one input table is given). Default: every field that has a domain at field or subtype level.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_hygiene" expression="check_hygiene">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Report unused domains, duplicate and near-duplicate descriptions, text codes that differ only by case or spaces (NEAR_DUP_CODE) and field/domain type mismatches.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="scan_unused_codes" expression="scan_unused_codes">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Report codes of used coded-value domains that never occur as a valid value in the scanned data (the detail counts the violations that suggest the code).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="null_is_violation" expression="null_is_violation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Report null values in domain fields as NULL_VALUE violations. By default nulls are only counted.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table with one row per violation: SRC_TABLE, SRC_OID, FIELD, SUBTYPE_CODE, DOMAIN, VALUE, ISSUE, SUGGESTED.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_domain_table" expression="out_domain_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output table of domain usage (USAGE rows) and domain hygiene issues (ISSUE rows), with the WORKSPACE (geodatabase) of each row.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) report with Summary and Detail sheets; a .csv path gives two CSV files, &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv. A report path inside a file geodatabase (.gdb) folder is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="violation_count" expression="violation_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of violations found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Give either Input Tables (one or more layers or tables) or Input Workspace (every feature class and table of a geodatabase), not both. In Input Workspace mode an output that would replace any dataset of the scanned geodatabase (including an output of an earlier run) is refused whatever the overwrite setting: write the outputs outside the scanned workspace.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on input layers are honoured for the value checks; domain usage is read from the schema. Two layers on the same table (for example with different definition queries) are both read: every row shown by either layer is checked, a row shown by both once. When the tables come from more than one geodatabase, SRC_TABLE and DATASET hold the full path of each table; the domain table's WORKSPACE column always names the geodatabase of each row.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A row whose subtype code is NULL or unknown is checked against the field-level domain (an unknown code also gets an INVALID_SUBTYPE row; a NULL code does not); a field whose domain is set only at subtype level is then not checked for that row, and a warning counts those values. Fix the subtype codes and run again.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Invisible marks (right-to-left mark, Arabic letter mark U+061C, zero-width space, word joiner U+2060, BOM, C0 control characters other than tab and line breaks, DEL, C1 control characters U+0080-U+009F other than U+0085, invisible operators U+2061-U+2064, U+180E, combining grapheme joiner, variation selectors) are ignored when a value is matched against a code or a description, so a pasted Arabic value that only looks right is reported with its suggested code. A value that equals a description exactly is suggested that description's code even when it is also a case variant of another code. A blank value, or one made only of invisible marks, is never matched to a description. Coded domains on date and time fields compare dates and times, so a DateOnly value equals a midnight code. ArcGIS Pro returns the codes of a Date domain as text in the Windows short date form (for example 3/5/2024): the tool reads them in the day, month and year order of the Windows short date format, or in the only order in which every code is a date, and a message names the order. When the codes cannot be read as dates (no such order, a two-digit year, or a calendar that is not Gregorian) the values of that domain are not checked: a warning counts them, and no violation and no CODE_NEVER_USED row is reported for the domain. If nothing was checked (only shapefiles, tables without a domain field, an input that shows no rows, or a domain that the subtype of every row removes) the run ends with a warning instead of "No domain violations found".&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Shapefiles and dBASE tables have no domains and are skipped with a message; an output that would replace any input, skipped ones included, is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Unused domains and never-used codes refer only to the scanned tables and fields. CODE_NEVER_USED means the code never occurs as a valid value; when violations suggest the code its detail says how many, and the data then does mean that code: fix the values, do not delete the code; when the domain applied to no row that was read, its detail says why: the input shows no rows, the rows' subtype codes are NULL or unknown, no row has a subtype that uses the domain, or every row's subtype removes it. In Input Tables mode UNUSED_DOMAIN therefore lists every domain of the geodatabase that the chosen tables do not use, which can be many rows in a large geodatabase; clear Check domain hygiene to leave them out.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Range domains on TimeOnly fields compare the time of day with the time of day of the bounds (bounds that come back as text such as 8:00:00 AM, 08:00:00 or a date and time are read as a time of day); TimestampOffset values are compared with offset-aware bounds exactly and with bounds without an offset by clock time. Date range bounds that come back as text are read as dates in the same way, and text that ends with a UTC offset (+03:00) as a date and time with that offset. A value that cannot be compared with the bounds is not reported as a violation and not counted as checked; a warning counts it, and when no value at all could be compared the run ends with a warning instead of "No domain violations found".&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;TYPE_MISMATCH compares the field type with the domain's field type as arcpy reports it (Domain.type, for example Text or Double). An unknown spelling gives no TYPE_MISMATCH row rather than a false one.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Values are matched after removal of invisible marks, Unicode NFC, trimming and case folding only: Arabic spelling variants (hamza and alef forms, tashkeel, tatweel, presentation forms), full-width Latin letters and Arabic-Indic digits (U+0660-0669, U+06F0-06F9, so a value of Arabic-Indic digits never matches the code 12) are not folded and give OUT_OF_DOMAIN with no suggested code. Case folding does fold the German sharp s and Latin ligatures (STRASSE matches a code written with the sharp s). A range domain whose minimum is above its maximum gets a RANGE_MIN_ABOVE_MAX row. All rows of a table are read into memory, so check very large tables in parts. The report's Detail sheet holds violation rows and domain rows under one header: filter on RECORD first. A .csv report path gives two files, &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv; in them a text that a spreadsheet would run as a formula (starting with =, @, or + or - not followed by a plain number) gets a leading apostrophe. The output tables keep the exact text; the Excel report shows control characters as &amp;lt;U+XXXX&amp;gt;. A report path inside a file geodatabase (.gdb) folder is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Layers with a join are not supported: check the tables themselves.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;SUBTYPE_CODE is empty when the row or field has no subtype. A dBASE output table (in a folder) cannot store an empty number and stores 0, which can be a real subtype code; a warning says so. Write the outputs to a geodatabase to keep it empty. In a dBASE or shapefile output a text field holds at most 254 UTF-8 bytes (an Arabic letter takes 2): longer text is cut to 254 bytes and a warning counts the cut values (the report keeps the full text). The dBASE table also gets the extra columns OID and Field1, and the field name SUBTYPE_CODE is cut to SUBTYPE_CO.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The tool never edits data.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Domain Audit</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks every value of every domain field against the domain that applies to its row (subtype-level domains win), explains each violation (description typed as code, case or space variant, out of range, unknown subtype) with a suggested code, and audits the domains themselves (unused domains, duplicate descriptions, codes never used, type mismatches). Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>domain</keyword>
+      <keyword>coded value</keyword>
+      <keyword>subtype</keyword>
+      <keyword>validation</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

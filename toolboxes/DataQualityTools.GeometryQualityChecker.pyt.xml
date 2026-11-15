@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="GeometryQualityChecker" displayname="Geometry Quality Checker" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds geometry problems that Check Geometry does not report, or reports only at its own fixed limit: spikes (sharp vertex angles), near-duplicate vertices, short segments (at a length you set), sliver polygons, tiny polygons, tiny parts of multipart polygons and parts far from the main part. Writes one error point per problem at the offending vertex, segment or part. Read-only, so it also works on versioned data.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Line or polygon features to check.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="checks" expression="checks">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks to run. Default: all. Area and part checks apply to polygons only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_angle_deg" expression="min_angle_deg">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SPIKE: vertices where the two segments meet at less than this angle (degrees; 180 = straight).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_tip_width_m" expression="max_tip_width_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SPIKE, blunt tips: a segment of at most this many metres is treated as the tip of a spike; its two vertices are replaced by the tip middle and the angle there is tested against Minimum angle. 0 = off (only single-vertex spikes are found). The narrow end of a long thin strip counts as a blunt spike too.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="near_dup_tol_m" expression="near_dup_tol_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;NEAR_DUP_VERTEX: consecutive vertices closer than or equal to this many metres (but not identical).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_segment_m" expression="min_segment_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SHORT_SEGMENT: segments longer than the near-duplicate tolerance but shorter than this many metres. 0 = off. Must be larger than the tolerance to find anything.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_thinness" expression="max_thinness">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SLIVER: polygon parts whose thinness 4*pi*Area/Perimeter^2 is below this value (1 = circle, about 0.785 = square). Each part of a multipart polygon (with its holes) is measured on its own. The default 0.1 flags parts more elongated than about 30:1. A value of 1 or more flags every part (no polygon reaches 1); a warning says so.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_area_m2" expression="min_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TINY_AREA: polygons smaller than this many square metres. 0 = off.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_part_share_pct" expression="min_part_share_pct">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;TINY_PART: parts of a multipart polygon holding less than this percentage of its area.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_part_distance_m" expression="max_part_distance_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;REMOTE_PART: parts further than this many metres from the largest part. 0 = off.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output point feature class: SRC_OID, CHECK, PART, VERTEX, VALUE, UNIT, DETAIL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report with Summary and Detail sheets.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of problems found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lengths, areas and distances are measured in metres in a projected system chosen from the data: the input system when it is projected (except Web Mercator, which distorts distances, and polar stereographic), otherwise the UTM zone of the data's centre. Geographic or Web Mercator data spanning more than 3 UTM zones is read in degrees and each feature is measured on its own Transverse Mercator projection centred on the feature (WGS 84 ellipsoid). Polar data (centre beyond 84N or 80S, or input in a polar stereographic system such as EPSG 3031) is also measured feature by feature, features beyond 84N / 80S each on a polar stereographic projection with true scale at the feature. With an unknown coordinate system the data's own units are used and a warning is given. The error points are written in the input coordinate system, through the same projection, so an input on a datum other than WGS 84 is not offset (an information message notes that no datum transformation is applied).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Vertex numbers are 0-based within each ring or path; part numbers are 1-based (holes belong to their part). Area and part checks have an empty VERTEX (TINY_AREA also an empty PART); a shapefile output stores these as 0, and a warning says so (write to a geodatabase to keep them empty). Exact duplicate vertices (0 m) are left to Check Geometry.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Features with true curves are skipped and listed (densifying them would create artificial vertices). Null geometries are counted and listed.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The default thinness 0.1 flags any part more elongated than about 30:1 (a 30 x 1 rectangle has 0.098): road, river, strip or right-of-way polygons will be reported as SLIVER in bulk, so lower Maximum thinness for such layers. SHORT_SEGMENT needs a Minimum segment length larger than the near-duplicate tolerance (a warning says so otherwise). For geographic input, areas and part distances are computed from the projected vertices; long edges are not densified for these measures (an approximation for edges of many kilometres).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on the input layer are honoured. The tool never edits data.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;SHORT_SEGMENT, TINY_AREA and REMOTE_PART are off by default (their threshold is 0): a message at the start of every run lists the checks that ran and the ones that did not. SPIKE tests the vertex angle, so a legitimate sharp corner is reported too; a spike whose tip has two vertices (a blunt tip) has two vertex angles near 90 degrees and is only found when Maximum spike tip width is above 0. On an open line the end vertices have no angle; a line whose first and last vertex are the same (4 or more vertices) is a closed loop, so its start vertex has an angle and can be a SPIKE. One fault can raise more than one check: a near-duplicate vertex that steps backwards is a NEAR_DUP_VERTEX and also gives SPIKE angles at the cutback. The checks assume valid geometry (ring order, closed rings): run Check Geometry first on data from other software. A feature with NaN or infinite coordinates is skipped and listed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Geometry Quality Checker</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds geometry problems that Check Geometry does not report, or reports only at its own fixed limit: spikes (sharp vertex angles), near-duplicate vertices, short segments (at a length you set), sliver polygons, tiny polygons, tiny parts of multipart polygons and parts far from the main part. Writes one error point per problem at the offending vertex, segment or part. Read-only, so it also works on versioned data.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>geometry</keyword>
+      <keyword>spike</keyword>
+      <keyword>sliver</keyword>
+      <keyword>multipart</keyword>
+      <keyword>validation</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

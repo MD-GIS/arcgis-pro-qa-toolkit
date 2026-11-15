@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="PriorityPointThinning" displayname="Point Thinning by Priority" toolboxalias="spatialbasic" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Thins a dense point layer so that no two kept points are closer than a minimum spacing (in metres, or taken from a map scale and the smallest distance between two symbols on paper), keeping the points with the highest priority first. Priority comes from a numeric field, optionally with a second field as tie-break; chosen points can be protected (always kept), and the points can be thinned group by group. Writes the kept points (or all points with KEPT flags), optionally the removed points with the point that removed each one and the distance, and a summary table. Works on a Basic licence, no extension.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_points" expression="in_points">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Point features to thin.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="priority_field" expression="priority_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Numeric field that says which points matter most.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="priority_order" expression="priority_order">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;HIGHEST_VALUE keeps the largest priority values first, LOWEST_VALUE the smallest.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="tiebreak_field" expression="tiebreak_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional numeric field that decides between equal priorities.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="tiebreak_order" expression="tiebreak_order">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Direction of the tie-break field.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_spacing" expression="min_spacing">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Minimum distance between kept points, in metres. Use this or the map scale with the symbol distance.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="map_scale" expression="map_scale">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Map scale denominator (25000 for 1:25,000), used with the symbol distance on paper.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="symbol_spacing_mm" expression="symbol_spacing_mm">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Smallest distance between two symbol centres on paper, in millimetres. Spacing in metres = scale x mm / 1000.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="group_field" expression="group_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional field: points are thinned separately for each value. The spacing is then guaranteed within each group only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="across_groups" expression="across_groups">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;With a Group Field: apply the spacing between points of different groups too (all points are thinned as one set).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="protected_where" expression="protected_where">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional SQL query selecting points that are always kept.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="output_content" expression="output_content">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;KEPT_ONLY writes the kept points; ALL_WITH_FLAGS writes every point with a KEPT flag.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="copy_attributes" expression="copy_attributes">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Copy the input attributes to the output points.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output point feature class: SRC_OID, KEPT, IS_PROT, PRI_RANK, PROT_VIOL (plus REMOVED_BY, REM_DIST_M with ALL_WITH_FLAGS) and the input attributes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_removed" expression="out_removed">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output point feature class with the removed points: SRC_OID, REMOVED_BY, REM_DIST_M, PRI_RANK and the input attributes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_summary" expression="out_summary">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output table: one row per group (with a Group Field) and a TOTAL row with counts, protected violations and the minimum and mean spacing achieved. GROUP_NULL = 1 marks the row of the null group.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="kept_count" expression="kept_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of kept points (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="removed_count" expression="removed_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of removed points (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Method: a greedy selection. The points are ranked (protected points first, then by the priority field, then by the tie-break field, then by ObjectID ascending). Walking down the ranking, a point is kept unless a point that is already kept lies closer than the spacing. This is a heuristic: the result is maximal (no removed point could be added back) but not necessarily the largest possible set, which is NP-hard to find in general. In the tests, on 200 sets of 18 random points per spacing (spacings of 15, 25 and 35 in a 100 x 100 square, compared with an exhaustive search), the greedy result had on average 3 to 17 percent fewer points than the largest possible set, and in a constructed worst case it kept 1 point where 5 fit. It is deterministic: the same input and settings always give the same result.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Guarantees: (1) any two kept points are at least the spacing apart, except two protected points; (2) every removed point has a kept point closer than the spacing that was ranked before it; (3) a point is kept exactly when no higher-ranked kept point is closer than the spacing. A pair of points at exactly the spacing is not 'closer' and both stay. No tolerance is applied to the spacing test. Distances are measured on the ground (see Spacing), so points on a regular grid of the coordinate system are not exactly the grid step apart on the ground unless the system's scale is 1 there; to keep every grid point, use a spacing a little below the smallest ground step.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Priority: Keep First HIGHEST_VALUE keeps the points with the largest value first, LOWEST_VALUE the smallest. Points with a null or NaN priority are ranked after every point that has a value (in both directions) and are then ordered by the tie-break field and ObjectID. Equal priorities are decided by the tie-break field, then by the lower ObjectID. The priority and tie-break fields are number fields (Short, Long, Big Integer, Float, Double); text fields are not accepted.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Spacing: give either Minimum Spacing in metres, or a Map Scale (the number after the colon, 25000 for 1:25,000) together with the smallest distance between two symbol centres on paper in millimetres: spacing = scale x mm / 1000 (1:25,000 and 3 mm give 75 m). The input must be in a projected coordinate system with a known linear unit; geographic (degree) input and input without a coordinate system are refused. Every distance (the spacing test, REM_DIST_M and the summary spacings) is a ground distance in metres on the WGS 1984 ellipsoid, whatever the projected system: at every point the tool measures how the system maps the ground there (the point is projected to latitude and longitude without a datum transformation, and four points 100 m east, west, north and south of it are projected back; near a pole the step is shorter), and the distance of two points is the mean of their two local measurements (the trapezoid rule; in the tests it is within 0.0002 % of the geodesic for distances up to 20 km, and the difference grows with the square of the distance). So the spacing is right on the ground in a national or continental system (Albers, Lambert, LAEA Europe), in UTM, in polar systems and in Web Mercator up to about 60 degrees latitude, and the run reports the range it measured: 'this coordinate system stretches a ground distance by a factor of A to B'. The tool refuses only points where that factor is below 0.5 or above 2 (Web Mercator beyond about 60 degrees latitude, a world system far from its true-scale line, a polar system far from its pole), naming the points and the kind of system, and points where the scale could not be measured (they could not be projected to WGS 1984 and back, or lie within about 1 km of a pole). Fix: project the points to a system made for their area (an Albers or Lambert system for a country or continent, the UTM zone for a small area), or split the area. The latitude and longitude are measured on the WGS 1984 ellipsoid even when the system's datum uses another ellipsoid (a difference of at most about 0.02 % for the usual ellipsoids).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Protected points: an SQL query (for example IMPORTANT = 1) selects points that are always kept. They are placed first in the ranking, so they also remove other points within the spacing, even points with a higher priority. Two protected points closer than the spacing are both kept and reported (PROT_VIOL = 1, a warning, and the summary table). Many protected points within one spacing of each other are slow: each one is compared with every other, so the time grows with the square of their number (thousands of them stacked at a few addresses can take minutes).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Groups: with a Group Field the points are thinned separately for every value (points of different groups never remove each other, so the spacing is guaranteed within each group only and points of different groups can be closer); null and NaN values form one group of their own, marked GROUP_NULL = 1 in the summary table (a shapefile or dBASE table stores a null text as an empty one, so GROUP_VAL alone cannot tell it from a group of empty text). Text values are compared exactly. Apply Spacing Across Groups thins all points as one set instead: the spacing then holds between any two kept points, and the groups only split the summary. PRI_RANK restarts at 1 in every group (it is one ranking over all points with Apply Spacing Across Groups).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Output Content KEPT_ONLY writes only the kept points; ALL_WITH_FLAGS writes every point with KEPT 1 or 0 and, for removed points, REMOVED_BY and REM_DIST_M. REMOVED_BY is the nearest kept point that was ranked before the removed point (kept points whose distances agree to 1 part in 10^9 count as equally near, and the one ranked first is named). The optional removed-points output has the removed points only.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Z and M values are ignored (distances use x and y only, measured on the ground; outputs are 2D). Points without geometry or with non-finite coordinates are skipped and listed. Points at the same location: the best-ranked one is kept, the others have distance 0. A shapefile or dBASE output cannot hold empty numbers: they are stored as 0 and the run warns about it. SRC_OID and REMOVED_BY are Long fields while every ObjectID fits 32 bits; with larger (64-bit) ObjectIDs they are Big Integer in a geodatabase (an ObjectID above 2^53 - 1, which ArcGIS Pro cannot store there, stops the run with the fix) and, in a shapefile or dBASE table, Double while every ObjectID has at most 12 significant digits (a dBASE Double keeps no more) and else text of 20 characters with every digit kept, with a message (a kept point then has an empty REMOVED_BY text instead of 0). An output into a feature dataset whose coordinate system is not the input's is refused: a feature dataset would project the points to its own system.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on the input layer are honoured. The input is never edited. If an arcpy error stops the run while an output is written, the outputs this run created are deleted and the messages collected so far are shown before the error.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Built-in alternatives (licences as Esri's ArcGIS Pro 3.3 help pages state them): Reduce Point Density thins by a depth value and needs the ArcGIS Bathymetry extension (Basic: No; pro.arcgis.com/en/pro-app/3.3/tool-reference/bathymetry/reduce-point-density.htm); Thin Spot Heights works on spot-height points only (Basic and Standard: No; Advanced: Requires Production Mapping; pro.arcgis.com/en/pro-app/3.3/tool-reference/topographic-production/thin-spot-heights.htm); Aggregate Points makes polygons around clusters (Basic and Standard: No; Advanced: Yes; pro.arcgis.com/en/pro-app/3.3/tool-reference/cartography/aggregate-points.htm). The free QGIS plugin point_selection is a related tool outside ArcGIS Pro.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Point Thinning by Priority</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Thins a dense point layer so that no two kept points are closer than a minimum spacing (in metres, or taken from a map scale and the smallest distance between two symbols on paper), keeping the points with the highest priority first. Priority comes from a numeric field, optionally with a second field as tie-break; chosen points can be protected (always kept), and the points can be thinned group by group. Writes the kept points (or all points with KEPT flags), optionally the removed points with the point that removed each one and the distance, and a summary table. Works on a Basic licence, no extension.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>thinning</keyword>
+      <keyword>points</keyword>
+      <keyword>generalization</keyword>
+      <keyword>priority</keyword>
+      <keyword>spacing</keyword>
+      <keyword>basic</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

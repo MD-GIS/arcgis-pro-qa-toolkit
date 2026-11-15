@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="QcScorecardAtlas" displayname="QC Scorecard Report" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Reads the issue tables written by the toolkit's quality tools (Geometry Quality Checker, Domain Audit, Line Network Rule Check) or any table in the unified issue schema, and writes ONE self-contained HTML report that opens from a file or a phone without internet: a delivery verdict (PASS or FAIL with the pass rate and the threshold), a card per rule sorted by count, an SVG error atlas over a simplified outline of optional context layers that can be toggled by rule, a hexagon density panel and a bar chart. It also writes the unified issue table and optionally a PNG of the atlas. Read-only: inputs are never changed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="issue_tables" expression="issue_tables">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;One row per issue table: the table, feature class or layer; the tool that made it (empty = recognise by column names; GeometryQualityChecker, DomainConformanceAudit, LineNetworkRules or UNIFIED); and optionally the dataset that tool checked. A layer or table view with a selection or definition query is read as it shows, with a warning. One issue table may be given in several rows only with the same tool and a different checked dataset in each (a table that holds the issues of several datasets; not a Geometry Quality Checker table); it is read once. A dataset named in several rows is checked over every feature any of them shows. In a dBASE table (.dbf, shapefile) SRC_OID 0 and X = Y = 0 are read as empty.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="context_layers" expression="context_layers">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional layers drawn in grey as the outline of the map. Selections and definition queries are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="rule_thresholds" expression="rule_thresholds">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional table with RULE_ID and any of SEVERITY, MAX_COUNT, MAX_RATE. An Excel sheet (book.xlsx\Sheet1$) works too; a numeric RULE_ID (101.0) is the rule 101. Without it any ERROR fails the delivery. A rule whose issues are all INFO never fails (a warning says its limit is not applied).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="severity_overrides" expression="severity_overrides">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional rows Rule, Severity (ERROR, WARNING or INFO) that replace the toolkit's default severity of a rule, for example DANGLE = WARNING for a network with legitimate dead-end streets. They win over the SEVERITY column of the threshold table. The report says which severities are toolkit defaults.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_pass_rate" expression="min_pass_rate">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional minimum pass rate in percent (0-100). Needs checked datasets. The delivery fails when the pass rate is lower.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_vertices" expression="max_vertices">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Most vertices of context outline kept in the report (default 200000). More are thinned; beyond that a layer is drawn as its extent.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="hex_size" expression="hex_size">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional hexagon size for the density panel, as the distance between two parallel sides, for example 500 Meters. Empty = the longer side of the checked area (checked datasets and issue locations, not the context layers) divided by 6 to 24 (more hexagons for more locations). Every unit of the dialog is accepted (Feet, Yards, Miles, Inches are US Survey units, FeetInt, YardsInt, MilesInt, InchesInt international); a length is not usable for geographic coordinates, where DecimalDegrees is.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="report_title" expression="report_title">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Title of the report. Default: QC scorecard.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_html" expression="out_html">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The report: one self-contained HTML file.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_issue_table" expression="out_issue_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output table with every issue in the unified schema: RUN_ID, TOOL, RULE_ID, SOURCE, SRC_OID, SEVERITY, X, Y, MESSAGE, FIELD, VALUE. SRC_OID is a Long field while every object id fits 32 bits; larger ids make it a Big Integer field in a geodatabase, GeoPackage or memory (an id above 2^53 - 1 stops the run) and, in a folder, a Double while every id has at most 12 significant digits, else text of 20 characters with every digit kept.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_png" expression="out_png">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional PNG picture of the atlas (needs matplotlib, which ArcGIS Pro ships; without it a warning is given and the PNG is skipped).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of issues read (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="verdict" expression="verdict">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PASS or FAIL (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Give one row per issue table in Issue Tables: the table (or feature class, or layer), the tool that made it (leave empty for automatic recognition from the column names) and, optionally, the dataset that tool checked. The checked dataset does three things: it names the source of tools that do not write one (Geometry Quality Checker), it gives the number of checked features (the pass rate is 100 x (1 - features with an ERROR / checked features)), and it gives a location to issues that have none (Domain Audit writes a table: the report finds the feature by its object id in the checked dataset and uses a point on it). Issues that still have no location are counted everywhere but not drawn; the report says how many. An issue table that holds the issues of several checked datasets (Domain Audit over several tables or a workspace, Line Network Rule Check with its rule-point layer, a unified table with several SOURCE values) is listed once per checked dataset: the same table and tool, a different Checked dataset in each row. It is read once, and each issue belongs to the checked dataset its source names. A Geometry Quality Checker table names no source, so it takes one checked dataset only.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The tools write no severity. The toolkit's own default is used (for example SPIKE and DANGLE are errors, PSEUDO_NODE and SLIVER are warnings). A threshold table (RULE_ID, SEVERITY, MAX_COUNT, MAX_RATE) or the Severity Overrides rows replace that default per rule, and the report marks which severities are toolkit defaults. The threshold table also sets limits per rule. Default without limits: any ERROR fails the delivery. MAX_RATE is the largest accepted share, in percent, of all checked features that the rule may hit; it needs checked datasets, and every issue of the rule that is not on a checked feature (no object id, an id not in the checked dataset, or a source that is not checked) counts as one failing feature of its own, so such errors can never help a rule pass. The minimum pass rate adds one more condition to PASS.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Context layers are drawn in grey as an outline. When they hold more vertices than the vertex limit, every k-th vertex is kept; beyond what that can fit, a layer is drawn as its extent. Issue locations are in the coordinate system of the first issue table with geometry; the geometry of other layers is projected to it while it is read (no datum transformation). X and Y columns are never projected: when a row has geometry, its geometry places the issue if the columns disagree with it or the layer was projected (a warning says so); the X and Y columns of a table without geometry are taken in the run's coordinate system. For degrees the map is drawn with longitude scaled by cos(latitude). Issues at the same point (to 1 mm) are one location: the map draws one marker per location (larger, with a dark rim, when several issues share it) and the hexagons count locations. The hexagon size is the distance between two parallel sides; empty means the longer side of the checked area (the checked datasets and the issue locations; context layers do not count, as for the summary sentence) divided by a number from 6 to 24, the rounded square root of (locations / 3), so 6 up to 126 locations and 24 from 1,657 locations up. At most 3,000 markers are drawn; above that every k-th marker of each rule is drawn and the report says so, while the density panel and all counts use every issue. The pass rate counts a checked feature once if it has at least one ERROR (matched by object id in the checked dataset); error rows without an object id, or with an id that is not in the checked dataset, are reported and the rate is kept between 0 and 100. An issue's source matches a checked dataset by its name, the typed text or its catalog path, in any case and with either slash (Domain Audit writes full paths when it checked several geodatabases); error rows whose source matches no checked dataset are named in a warning.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Issue tables from the Domain Audit's second output (the usage and hygiene table) and Excel report sheets are not read; give the violations table. All text from your data is HTML-escaped in the report. The tool never edits data and never overwrites an input.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>QC Scorecard Report</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Reads the issue tables written by the toolkit's quality tools (Geometry Quality Checker, Domain Audit, Line Network Rule Check) or any table in the unified issue schema, and writes ONE self-contained HTML report that opens from a file or a phone without internet: a delivery verdict (PASS or FAIL with the pass rate and the threshold), a card per rule sorted by count, an SVG error atlas over a simplified outline of optional context layers that can be toggled by rule, a hexagon density panel and a bar chart. It also writes the unified issue table and optionally a PNG of the atlas. Read-only: inputs are never changed.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>QC</keyword>
+      <keyword>report</keyword>
+      <keyword>scorecard</keyword>
+      <keyword>delivery</keyword>
+      <keyword>HTML</keyword>
+      <keyword>SVG</keyword>
+      <keyword>issues</keyword>
+      <keyword>validation</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

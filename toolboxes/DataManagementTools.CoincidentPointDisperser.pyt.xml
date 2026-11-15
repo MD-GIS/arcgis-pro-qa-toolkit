@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="CoincidentPointDisperser" displayname="Disperse Stacked Points" toolboxalias="datamgmt" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds groups of points that coincide or lie within a tolerance of each other (several records at one address, pole or well; survey duplicates; geocoder stacking) and writes a COPY of the layer in which the points of every group are moved into a circle, spiral, grid or line around the group's anchor. All attributes are kept; DISP_GROUP, DISP_INDEX, DISP_COUNT, DISP_DIST_M, DISP_NEAR and the original position (ORIG_X, ORIG_Y) are added so the move can be audited and reversed. A group table lists every group. The moved positions are cartographic, NOT survey positions.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Point features in a projected coordinate system (layer selections and definition queries are honoured).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;New point feature class: a copy of the input with the points of every group moved, plus DISP_GROUP, DISP_INDEX, DISP_COUNT, DISP_DIST_M, DISP_NEAR, ORIG_X, ORIG_Y and SRC_OID.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_groups" expression="out_groups">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional table with one row per group of two or more points: group number, point count, anchor, original radius, largest move, points near another group, the ObjectIDs in group order.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="spacing" expression="spacing">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Minimum distance between any two points of one group, in the units chosen below (a finite number greater than 0).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="distance_units" expression="distance_units">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;METERS (default): spacing and tolerance are metres; MAP_UNITS: they are in the units of the coordinate system (feet for a foot-based system).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="tolerance" expression="tolerance">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Points within this distance of each other (chains included) are one group. 0 (default) groups identical coordinates only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="pattern" expression="pattern">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;CIRCLE (default), SPIRAL, GRID or LINE.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="centre_mode" expression="centre_mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;CENTRED (default): pattern centred on the group's mean position, the mean is preserved. FIRST_AT_ANCHOR: the first point stays, the others are arranged around it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="bearing" expression="bearing">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Direction of the pattern, degrees clockwise from north (default 0): the direction of the first point for CIRCLE and LINE (CENTRED); for SPIRAL the first point is at (FIRST_AT_ANCHOR) or, CENTRED, near the centre and the Bearing gives the direction of the second point; with FIRST_AT_ANCHOR the first point stays and the second point goes towards the Bearing (CIRCLE, SPIRAL, GRID). It also turns the grid and the line.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sort_field" expression="sort_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional field that orders the points inside a group (ObjectID breaks ties; without it the order is by ObjectID).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sort_descending" expression="sort_descending">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Sort the Sort Field from high to low (default unchecked).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="avoid_others" expression="avoid_others">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Turn and enlarge each pattern until none of its points is closer than the spacing to any other point (bounded search; default unchecked, so the result is the documented pattern).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_group_size" expression="max_group_size">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Groups with more points than this are left where they are and named in a warning (default 1000; 0 = no limit).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The built-in Disperse Markers tool (Cartography) needs an Advanced licence and changes the input; it groups the symbols of a symbolized layer that overlap at a reference scale and spaces them in page units. This tool works in distances of the coordinate system (metres or map units), calls only geoprocessing tools that Esri lists for the Basic licence, and moves the points themselves in a copy, so the result also works in tables, exports and analysis, not only on screen.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The input must be a point layer in a PROJECTED coordinate system. A geographic input (degrees) is refused with a message that says to project it first; multipoint features are refused (make one point per feature first). The input is never changed; selections and definition queries on a layer are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Grouping: two points are in one group when they are connected by a chain of points, each within the tolerance of the next (connected components, found with a spatial hash). Because of the chain effect a group can be wider than the tolerance; a warning counts the groups whose members are farther than the tolerance from the group anchor. Tolerance 0 groups only identical coordinates. Points alone in their group are copied unchanged.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Spacing is the minimum distance between any two points of one group. CIRCLE puts the points on a circle of radius spacing / (2 sin(pi / n)); GRID on a square lattice of pitch spacing; LINE on a line with that pitch; SPIRAL on an Archimedean spiral that grows only as far as needed to keep the closest pair exactly one spacing apart. The Bearing (degrees clockwise from north) turns the pattern. CENTRED: CIRCLE and LINE place the first point towards the Bearing; for SPIRAL the first point is the spiral centre, near the anchor (the spiral is shifted so that its mean is the anchor), and the Bearing gives the direction of the second point from the first; GRID starts at the front-left corner (front = towards the Bearing; with Bearing 0 the north-west corner) and fills each row from left to right, row after row away from the Bearing. FIRST_AT_ANCHOR: the first point stays at the anchor and the second point goes towards the Bearing (CIRCLE, SPIRAL, GRID); for LINE the others follow in the opposite direction. The others follow clockwise (CIRCLE, SPIRAL), row by row (GRID CENTRED) or by distance and then clockwise (GRID FIRST_AT_ANCHOR). The order inside a group follows the Sort Field (ascending, or descending; empty values last; text in natural order) and then the ObjectID; without a sort field it is the ObjectID order.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Centre Mode CENTRED (default): the group's anchor is the mean of its points and the pattern is centred on it, so the mean of the moved points equals the anchor (the centre of a circle stays empty). FIRST_AT_ANCHOR: the first point of the group stays where it is and the others are arranged around it.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Within a group the spacing is guaranteed. Between different groups it is not, unless Avoid Other Points is checked: neighbouring patterns can overlap; the tool counts those points, warns, and writes the count per group (NEAR_OTHER). Avoid Other Points turns the pattern (steps of 30 degrees) and enlarges it (steps of 20 percent, up to 8.9 times) about its anchor until no point comes closer than the spacing to any other point; the search is bounded (at most 156 tries per group), groups that cannot be cleared are marked AVOID_FAILED in the group table and counted in NEAR_OTHER. It keeps the mean (CENTRED) or the first point (FIRST_AT_ANCHOR), but the pattern is no longer the one in the formulas above, and a large ring can reach farther. With FIRST_AT_ANCHOR the first point never moves, so it can stay within the spacing of a single point or of another group's first point without its group being AVOID_FAILED; it has DISP_NEAR 1 and the Avoid message counts such points. It is off by default so that the result is the documented pattern.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Maximum Group Size (default 1000) guards against a tolerance that merges a whole neighbourhood into one group: a larger group is left where it is, listed in the group table with the note TOO_LARGE and named in a warning. A warning also appears when a group is displaced farther than 10 spacings (a CIRCLE of 69 points at 5 m has a radius of 55 m; SPIRAL or GRID stay closer). Coordinates are rounded to the XY resolution of the output, so two points can end up up to 1.4 resolutions closer than the spacing; a spacing below 10 resolutions is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Distances are grid distances of the coordinate system, not ground distances. In UTM or another local system the two agree closely (UTM: within about 0.1 percent), but in Web Mercator a metre on the ground is 1 / cos(latitude) grid metres (1.10 at Riyadh, 2.0 at 60 degrees north): a spacing of 10 m there is about 5 m on the ground. For a Mercator system the tool says so and, for Web Mercator, gives the scale factor at the data centre; project the input to a local system first when ground distances matter.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Output: all input fields (types, lengths, aliases, domain names), then DISP_GROUP (group number, by the smallest ObjectID in the group), DISP_INDEX (1-based position in the group), DISP_COUNT (points in the group), DISP_DIST_M (how far the point moved, in metres), ORIG_X and ORIG_Y (the original coordinates; an input field of one of these names is carried as ORIG_X_1 or ORIG_Y_1, or the next number no input field uses, such as ORIG_X_2), DISP_NEAR (1 when the moved point is closer than the spacing to a point of another group) and SRC_OID (the input ObjectID: a Long field while every ObjectID fits 32 bits; with 64-bit ObjectIDs a Big Integer field in a geodatabase, where an ObjectID above 2^53 - 1 stops the run, and in a shapefile a Double field while every ObjectID has at most 12 significant digits, else a text field of 20 characters with every digit kept). In a shapefile the name DISP_DIST_M is cut to DISP_DIST_; NULL text becomes a blank and trailing spaces are removed there (dBASE). The geometry keeps Z and M values. Subtypes, GlobalIDs and BLOB/raster fields are not copied. Points with a null geometry are copied with a null geometry and empty DISP fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Re-running the tool on its own output is refused (the fields DISP_* exist); run it on the original points. Existing outputs are replaced only when geoprocessing is allowed to overwrite outputs.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Disperse Stacked Points</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds groups of points that coincide or lie within a tolerance of each other (several records at one address, pole or well; survey duplicates; geocoder stacking) and writes a COPY of the layer in which the points of every group are moved into a circle, spiral, grid or line around the group's anchor. All attributes are kept; DISP_GROUP, DISP_INDEX, DISP_COUNT, DISP_DIST_M, DISP_NEAR and the original position (ORIG_X, ORIG_Y) are added so the move can be audited and reversed. A group table lists every group. The moved positions are cartographic, NOT survey positions.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>coincident points</keyword>
+      <keyword>overlapping points</keyword>
+      <keyword>disperse</keyword>
+      <keyword>duplicates</keyword>
+      <keyword>spread</keyword>
+      <keyword>jitter</keyword>
+      <keyword>stacked points</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

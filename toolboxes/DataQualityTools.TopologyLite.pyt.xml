@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="TopologyLite" displayname="Topology Check (Lite)" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks polygons (and optionally a second polygon layer and lines) against topology rules without needing a geodatabase topology, so it works on a Basic licence: overlaps inside a layer (one error per pair of features, with both ObjectIDs and the overlap area), gaps (voids enclosed by the polygons), slivers (polygons under an area or width), and, against a second layer, 'must be covered by', 'must not overlap with' and 'must cover' (gaps against a boundary). For lines: must not self-overlap, must not intersect (cross or overlap) and must be inside the polygons. Writes an error point layer, optionally an error polygon layer, a summary table and a report. Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_features" expression="in_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Polygon layer to check.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="other_features" expression="other_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional second polygon layer: a layer to compare with, or a boundary or must-cover layer. Needed by the three 'other' rules.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="line_features" expression="line_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional line layer for the three line rules.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="rules" expression="rules">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Rules to check. Default: OVERLAP and GAP.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="tolerance_m" expression="tolerance_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Tolerance in metres: vertices and edges closer than this are the same place; regions narrower than this are ignored. The tool uses at least twice the 0.0001 m grid and twice the XY resolution of the inputs. Default 0.001 m (the Esri default cluster tolerance).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="min_area_m2" expression="min_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Do not report overlaps, gaps and uncovered parts smaller than this many square metres. 0 = report all.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="small_area_m2" expression="small_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Overlaps, gaps and uncovered parts smaller than this many square metres get SEVERITY = SMALL (usually digitising noise: sort or symbolise on SEVERITY to look at the NORMAL ones first). Nothing is dropped; use Minimum Error Area to drop them. Default 0.1; 0 = every error is NORMAL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_gap_m2" expression="max_gap_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Do not report gaps larger than this many square metres (a lake or a park left out on purpose). 0 = no limit.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sliver_area_m2" expression="sliver_area_m2">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SLIVER: report polygons smaller than this many square metres. Empty or 0 = no area test.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="sliver_width_m" expression="sliver_width_m">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SLIVER: report polygons whose width, 2 x area / perimeter, is below this many metres (a strip is as wide as the strip; a square is half its side). Empty or 0 = no width test. Each test works alone; when both are given a polygon must fail both (small AND thin). The SLIVER rule needs at least one of them.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_regions" expression="max_regions">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Safety limit on the number of overlap, gap and uncovered regions (and on the work to find them): the run stops with a message when it is passed, instead of using all the memory. Default 50000. In the tests a run with 35,000 errors used about 480 MB and a heavily stacked layer was stopped at the limit after about 170 MB; 0 = no limit.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_points" expression="out_points">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output error point feature class: RULE, SEVERITY, LAYER, OID_A, OID_B, AREA_M2, LENGTH_M, WIDTH_M, PIECES, DETAIL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_polygons" expression="out_polygons">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output error polygon feature class with the same fields: the overlap, gap, sliver or uncovered region itself (line rules have no polygon).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_summary" expression="out_summary">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional output table with one row per rule: errors, total and largest value.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional report: an Excel (.xlsx) file with Summary and Detail sheets, or for .csv two files, &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="error_count" expression="error_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of errors found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Quick start: choose the Input Polygons, leave Rules at OVERLAP and GAP, name an Output Error Points feature class and run; then sort the output by SEVERITY and AREA_M2 (or symbolise it on RULE and SEVERITY).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Rules. OVERLAP, GAP and SLIVER need only the input polygons. NOT_COVERED_BY_OTHER (parts of the input that no polygon of the Other Polygons covers), OVERLAPS_OTHER (input and other overlap) and OTHER_NOT_COVERED (parts of the other layer, for example a boundary, that no input polygon covers) need Other Polygons. LINE_SELF_OVERLAP and LINE_INTERSECT need Lines; LINE_OUTSIDE needs Lines and uses the Other Polygons when given, else the input polygons; an empty reference (no polygon with geometry) covers nothing, so every line is outside, and a warning says so. The rules follow the wording of the geodatabase topology rules (Must Not Overlap, Must Not Have Gaps, Must Be Covered By Feature Class Of, Must Not Overlap With, Must Cover Each Other, Must Not Self-Overlap, Must Not Intersect, Must Be Inside), but this tool does not create a topology and its errors are not topology errors that can be marked as exceptions or fixed with the Fix Topology Error tools.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Gaps. A gap is a region that no polygon covers and that is enclosed by polygons (or is the hole of one polygon). Empty space at the outside of the layer, and space connected to it through a channel wider than the tolerance, is not a gap (as for the Must Not Have Gaps rule); use the boundary layer and OTHER_NOT_COVERED to find gaps against an outline. Esri's Must Not Have Gaps rule writes line errors along the outlines of the voids (and, as observed in ArcGIS Pro, one more along the outer outline of the whole tiling). This tool writes one polygon error per void and none for the perimeter.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Severity. Every overlap, gap and uncovered part below Small Error Area (default 0.1 m2, a value chosen for real data, not a standard) gets SEVERITY = SMALL, all other errors NORMAL. Nothing is dropped; use it to sort the table or to symbolise the layer (unique values on SEVERITY, or on RULE and SEVERITY). Minimum Error Area drops errors instead.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Tolerance and coordinate resolution. All coordinates are first rounded to a grid of 0.0001 m (the default XY resolution of a projected system), so coordinates that the data store has already snapped to its resolution give no false results. Vertices closer than the tolerance are treated as one point and a vertex that lies within the tolerance of another polygon's edge is made part of that edge, so boundaries that differ only by that much match. A region (overlap, gap, uncovered part) whose mean width (2 x area / perimeter) is not larger than the tolerance is noise and is not reported; the tool counts them in a message. The tolerance actually used is the largest of the one entered, twice the grid and twice the XY resolution of the inputs. Overlaps and gaps are measured on the geometry after this snapping, so areas differ from an exact computation by at most the tolerance times the boundary length involved.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Geometry. Planar geometry in the coordinate system of the input, which must be projected (geographic and unknown systems are refused; Web Mercator gives a warning). The other layer and the lines are projected into the system of the input as they are read. Z and M are ignored. Features with true curves are skipped and listed; null geometries are listed. Rings in OGC order (outer counter-clockwise, holes clockwise) are read by nesting, so their holes are still checked, and a warning lists those features. A polygon touching another at a point or along an edge is not an overlap. The tool never edits data; selections and definition queries on the layers are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Slivers. Give a Sliver Area, a Sliver Width (2 x area / perimeter: a strip's width, half the side of a square), or both (a polygon must then fail both); the rule is refused with neither.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Safety limit. Maximum Error Regions (default 50000) stops a run whose layers overlap heavily (many polygons stacked on each other) before it uses all the memory; 0 = no limit. It counts regions and pieces of work, not bytes. Layers full of tiny digitising overlaps and gaps are slow without being stopped (12,000 polygons with 1 cm vertex noise: about 23 s of processor time in a Python test, 35,000 errors); run such data in parts.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Output. One error point per error, always inside the error region (the centroid of its largest piece when that lies well inside, else the pole of inaccessibility, else the middle of the widest horizontal stretch), at the middle of the longest overlapped stretch (line rules) or at a crossing. LINE_INTERSECT gives one row per pair of lines: PIECES is the number of crossings, LENGTH_M the length along which they overlap. In a shapefile output, empty numbers are stored as 0 and a warning says so.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Topology Check (Lite)</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Checks polygons (and optionally a second polygon layer and lines) against topology rules without needing a geodatabase topology, so it works on a Basic licence: overlaps inside a layer (one error per pair of features, with both ObjectIDs and the overlap area), gaps (voids enclosed by the polygons), slivers (polygons under an area or width), and, against a second layer, 'must be covered by', 'must not overlap with' and 'must cover' (gaps against a boundary). For lines: must not self-overlap, must not intersect (cross or overlap) and must be inside the polygons. Writes an error point layer, optionally an error polygon layer, a summary table and a report. Read-only.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>topology</keyword>
+      <keyword>overlap</keyword>
+      <keyword>gap</keyword>
+      <keyword>sliver</keyword>
+      <keyword>coverage</keyword>
+      <keyword>validation</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

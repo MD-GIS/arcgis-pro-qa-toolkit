@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="BoundaryDescriptionWriter" displayname="Boundary Description (Metes and Bounds)" toolboxalias="spatialbasic" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Writes a boundary description for every polygon (parcel, concession, zone, licence block): a course table, a vertex schedule, a closure report and an English and Arabic narrative. Each ring is first put in a standard form (start vertex, orientation). The closure report recomputes the traverse from the ROUNDED published bearings and distances and shows the error that rounding causes; it is never adjusted away. An optional line layer carries bearing and distance labels for the map. A drafting aid, not a legal survey instrument.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_polygons" expression="in_polygons">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Polygon features (projected coordinate system).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="key_field" expression="key_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Field that names each parcel in the outputs. Default: the ObjectID. A whole-number value of a decimal field (12.0) is written as 12.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_courses" expression="out_courses">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output course table: one row per course (parcel key, part, ring, course, from and to point, exact and published bearing and distance, from and to X/Y, line type, ARC_APPROX).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_vertices" expression="out_vertices">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional vertex schedule: one row per vertex with point number and X/Y (and latitude/longitude when requested).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_closure" expression="out_closure">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional closure report: one row per ring, from the ROUNDED courses.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_narrative" expression="out_narrative">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional narrative table: one row per parcel and language.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional report file: .txt (plain text) or .html (simple HTML) with the narratives, course tables and closure of every parcel.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_lines" expression="out_lines">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional line feature class: one line per course with BEARING, DIST_TXT and LABEL_TXT for labelling the map.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="start_vertex" expression="start_vertex">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Point 1 of every ring. NORTHWEST (default) = the northernmost vertex (largest Y), and of equal Y the westernmost: on a tilted parcel it can be the north-EAST corner. NORTHEAST, SOUTHWEST and SOUTHEAST work the same way (north/south first, then east/west). FIRST_VERTEX keeps the stored first vertex.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="orientation" expression="orientation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;OUTER_CW_HOLES_CCW (default), ALL_CLOCKWISE or ALL_COUNTERCLOCKWISE.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="bearing_format" expression="bearing_format">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;QUADRANT_DMS (default), AZIMUTH_DMS or AZIMUTH_DECIMAL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="angle_decimals" expression="angle_decimals">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Decimals of the second (DMS formats) or of the degree (AZIMUTH_DECIMAL). Empty: 0 for DMS, 4 for decimal degrees.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="distance_unit" expression="distance_unit">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;METERS (default), FEET (international foot, 0.3048 m) or US_SURVEY_FEET (1200/3937 m).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="distance_decimals" expression="distance_decimals">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Decimals of the published distances (default 2).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="merge_collinear" expression="merge_collinear">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Drop vertices that lie on the straight line between their neighbours (default off). Every dropped vertex stays within the tolerance of the course that replaces it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="collinear_tolerance" expression="collinear_tolerance">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Distance (in the chosen unit) within which a vertex counts as collinear (default 0.001). 0 merges only vertices that lie exactly on the line.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="add_latlon" expression="add_latlon">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Add longitude and latitude (decimal degrees and DMS, on the geographic system of the input) to the vertex schedule.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="language" expression="language">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;BOTH (default), ENGLISH or ARABIC narrative.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="arabic_digits" expression="arabic_digits">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;WESTERN (default) or ARABIC_INDIC digits in the Arabic narrative.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="basis_position" expression="basis_position">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Where the basis-of-bearings sentence goes in every narrative: CLOSING (default, after the last paragraph), OPENING (before the first) or NONE.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="basis_text" expression="basis_text">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional. Your own wording for the basis statement, used instead of the standard English and Arabic sentences (the same text in both languages). Empty: the standard sentence, which names the coordinate system, says the bearings are grid bearings and the distances planar, and that the text is a draft.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_crossings" expression="check_crossings">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Test every polygon for boundary segments that cross each other (default on; a plane-sweep test that takes a fraction of a second for a 50,000-vertex ring). Untick to skip the test for very large inputs; no self-intersection warning is then given.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="course_count" expression="course_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of courses written (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Licence: no Advanced-only tool is called; working on a Basic licence is NOT VERIFIED.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Input: polygons in a PROJECTED coordinate system. Geographic (degree) input and Web Mercator are refused with "Project first": bearings and distances are computed on the plane of the coordinates, in the coordinate system's own units. A selection or definition query on a layer is honoured. The input is never edited.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Bearings are GRID bearings: azimuth = atan2(dx, dy) clockwise from grid north (the +Y axis), not true, geodetic or magnetic north. The angle between grid north and true north at the centre of the data is reported in the messages but not applied to the bearings (it needs a coordinate system with a WKID; without one nothing is said). Distances are planar distances between the vertices, converted to the chosen unit; no scale factor, elevation or ellipsoid reduction is applied.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Start vertex: NORTHWEST = northernmost, then westernmost (the default); NORTHEAST, SOUTHWEST and SOUTHEAST likewise; FIRST_VERTEX keeps the first stored vertex. Values closer than 0.000001 map units count as equal; the first such vertex wins. Orientation: by default each outer ring runs clockwise and each hole counter-clockwise (the Esri convention for polygons). Rings are numbered over the whole feature (RING_NO 1, 2, ...: outer ring of part 1, its holes, outer ring of part 2, ...), points are numbered on over the rings of one feature, and every ring closes on its own first point.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Bearing format: QUADRANT_DMS (N 45°30'15" E; a bearing published as exactly due north, east, south or west is written North, East, South, West), AZIMUTH_DMS or AZIMUTH_DECIMAL. Angle decimals: decimals of the second (DMS formats, default 0) or of the degree (AZIMUTH_DECIMAL, default 4). Angles and distances are rounded half up, and a carry (59.9999 seconds becomes the next minute) is handled.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Closure: the Closure Report recomputes each ring from the published, rounded bearings and distances (not from the coordinates) and reports the misclosure, the precision ratio 1:N (perimeter / misclosure, rounded down) and ROUND_BND, the largest misclosure that rounding alone can cause. Rounding can break closure; that is shown, not hidden. A closure adjustment (compass rule or any other) is OUT of scope and is never applied.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Curves: true curve segments are written as straight chords and flagged ARC_APPROX = 1 (and counted in a warning; ARC_SEGS in the Closure Report flags the ring and its area and perimeter are those of the chord polygon). No arc elements (radius, arc length, chord, delta) are written. A ring made ONLY of curve segments (a circle, a two-arc shape) cannot be written as straight courses and is skipped with a message of its own: densify it first. When such a ring (or a semicircle) is a HOLE, the outer ring's description includes its area as land: a warning and a note in the narrative say so, with the area; a part with area that cannot be written gets the same note. A curve that was already densified into many short segments cannot be recognised and appears as many short courses. Which outer ring a hole belongs to, and whether rings cross, is decided on the TRUE curves (sampled), so a hole in the bulge of an arc stays a hole of its parcel; a warning names a hole that the chord courses do not enclose. A hole whose outer ring is skipped (for example inside a circle) is not described, with a warning, and a counter-clockwise ring that lies in no outer ring is described as an outer ring with a warning.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Optional collinear merge: a vertex is dropped when its segments are straight and it lies within the tolerance of the line between its neighbours (and between them); every vertex dropped is kept within the tolerance of the course that finally replaces it (all the vertices it replaces are re-tested), and the message gives the largest offset; a tolerance of 0 merges only vertices exactly on the line; a warning names polygons whose ring area changes by more than 1% (tolerance too large). The test uses the convex hull of the replaced vertices, so a long densified straight side is merged in about linear time. The start vertex is chosen afterwards, and a near-collinear topmost vertex is merged like any other. Repeated vertices are always dropped. Z and M values are ignored. A ring with fewer than three distinct vertices or no area is skipped with a warning. A polygon whose boundary crosses itself (for example a bow-tie) is described as stored, with a warning that names it; so is a spike (the boundary runs out and straight back). Parts are numbered over the parts that are described.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Narrative: English and/or Arabic. The narrative is only written when you tick Output Narrative Table or Output Narrative File (one row per parcel and language in the table, and in the .txt or .html file). Every narrative ends (or starts, see Basis of Bearings Statement) with a basis-of-bearings sentence naming the coordinate system, saying the bearings are grid bearings, the distances planar, and the text a draft; coordinates are labelled with their unit. Arabic numbers are isolated left to right so that bearings read correctly inside right-to-left text; Arabic-Indic digits are optional. The Arabic wording has not been reviewed by a legal translator. A dBASE text field holds at most 254 bytes (an Arabic letter takes 2), so a narrative table in a folder essentially never fits (with the basis sentence, never; validation warns): use a geodatabase for the narrative table, or the narrative file.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Parcel keys used by more than one polygon are warned (the rows are told apart by SRC_OID only). The run also compares grid north (+Y) with true north at the centre of the data and gives the angle; when they differ by more than 45 degrees (for example a south-orientated system, where +Y points south) it warns that the bearings do not refer to north. This check needs a coordinate system with a WKID: a custom system without one (even a south-orientated one) gets no angle and no warning.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Limits: a drafting aid, not a legal survey instrument; liability for the text stays with whoever signs it. Polygons are read as stored and not repaired (self-intersections, an outer ring stored counter-clockwise).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Self-intersection test: each polygon is swept once (Shamos-Hoey plane sweep, O(n log n)), so a 50,000-vertex ring takes a fraction of a second (measured in Python). All rings of one polygon are tested together. A crossing is two segments crossing each other, a vertex lying on another segment with the boundary passing through it (as snapping produces), or a shared point the boundary passes through (a figure-8). Touching without passing through, shared end points and overlaps are not crossings. A polygon that touches itself is re-tested pair by pair (up to 2,000,000 tests); only a very large touching polygon can have a crossing missed, and a boundary that runs along another edge before crossing it is not reported. Crossings between different polygons are not tested. Check Self-Intersection can be unticked to skip it.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Boundary Description (Metes and Bounds)</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Writes a boundary description for every polygon (parcel, concession, zone, licence block): a course table, a vertex schedule, a closure report and an English and Arabic narrative. Each ring is first put in a standard form (start vertex, orientation). The closure report recomputes the traverse from the ROUNDED published bearings and distances and shows the error that rounding causes; it is never adjusted away. An optional line layer carries bearing and distance labels for the map. A drafting aid, not a legal survey instrument.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>boundary description</keyword>
+      <keyword>metes and bounds</keyword>
+      <keyword>bearing</keyword>
+      <keyword>distance</keyword>
+      <keyword>closure</keyword>
+      <keyword>arabic</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

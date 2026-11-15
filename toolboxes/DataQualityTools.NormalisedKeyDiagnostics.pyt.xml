@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="NormalisedKeyDiagnostics" displayname="Join Key Diagnostics" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds duplicate keys that only differ by spaces, case, Arabic-Indic digits, leading zeros, number-vs-text type or Arabic letter forms, and lists which raw values collapsed together. In JOIN mode it compares the keys of two tables and states, for each key that does not match exactly, after which normalisation steps it would match.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="mode" expression="mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;DUPLICATES: find duplicate keys in one table. JOIN: diagnose the keys of the input against a join table.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layer or table whose keys are checked (the left side in JOIN mode).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="key_fields" expression="key_fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;One or more fields forming the key (a composite key when several).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="join_table" expression="join_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;JOIN mode: the layer or table to join to (the right side).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="join_key_fields" expression="join_key_fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;JOIN mode: the key fields of the join table, in the same order and number as Key Fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="normalisation" expression="normalisation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Normalisation steps to apply. Default: TRIM, CASE, DIGITS, LEADING_ZEROS, TYPE. ARABIC_LETTERS folds alef/yeh forms, tashkeel and tatweel; TA_MARBUTA also folds teh marbuta to heh.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="write_groups" expression="write_groups">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;DUPLICATES mode: write DUP_GROUP (empty for unique keys and for keys with a null part; 0 instead when editing a shapefile or dBASE input in place) and DUP_COUNT fields, to a geodatabase copy (Output Features) or in place.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="in_place" expression="in_place">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Write the group fields into the input itself (requires Write group fields). A backup copy is made first; unchecked by default.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_features" expression="out_features">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Copy of the input with DUP_GROUP and DUP_COUNT, when Write group fields is checked and Edit input in place is not. Must be in a geodatabase (a shapefile or dBASE copy is refused).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Detail table. DUPLICATES: DUP_GROUP, NORM_KEY, SRC_OID, RAW_KEY, DUP_COUNT for every row in a group. JOIN: LEFT_KEY, LEFT_COUNT, STATUS, RIGHT_KEY, RIGHT_COUNT, MATCH_AFTER per distinct key.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report with Summary and Detail sheets.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;DUPLICATES: rows in duplicate groups. JOIN: keys that do not match exactly (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Normalisation steps always run in the fixed order TRIM, CASE, DIGITS, LEADING_ZEROS, TYPE, ARABIC_LETTERS, TA_MARBUTA, whatever order they are ticked in. Text keys are always put in Unicode canonical composition (NFC) before the steps and after each of them, so a decomposed spelling (as exported on macOS or copied from a PDF) is the same key as the precomposed one. A null in any key field never matches anything. With TRIM ticked the ends are stripped again after every later step, and LEADING_ZEROS also runs again after every later step. Selections and definition queries on input layers are honoured.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The input is never changed unless Write group fields and Edit input in place are both checked; then a backup copy is made first and all changes are written in one edit session. In-place editing is refused for layers with joined tables, a selection or a definition query. Without in-place editing, Write group fields writes a geodatabase copy of the input (Output Features) with DUP_GROUP and DUP_COUNT; a shapefile or dBASE copy is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;JOIN mode: MATCHED means identical characters, letter case included. Esri states that one-to-first joins are not case sensitive (one-to-many joins are), so a WOULD_MATCH whose MATCH_AFTER is only CASE may already join. MATCH_AFTER names the steps that were needed, not every step that changed a key. RIGHT_KEY is the right-hand key found at the earliest step in the fixed order; RIGHT_COUNT counts every right-hand row whose key equals the left key after all enabled steps.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Report: control characters show as &amp;lt;U+0001&amp;gt; in an Excel report and a lone surrogate as &amp;lt;U+D800&amp;gt; in both formats; the run warns when a report cell differs from the key, and the Output Table keeps the exact keys. Edge cases and limits are listed on the tool page (docs/tools/NormalisedKeyDiagnostics.md).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Join Key Diagnostics</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Finds duplicate keys that only differ by spaces, case, Arabic-Indic digits, leading zeros, number-vs-text type or Arabic letter forms, and lists which raw values collapsed together. In JOIN mode it compares the keys of two tables and states, for each key that does not match exactly, after which normalisation steps it would match.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>duplicates</keyword>
+      <keyword>join</keyword>
+      <keyword>key</keyword>
+      <keyword>normalise</keyword>
+      <keyword>Arabic</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

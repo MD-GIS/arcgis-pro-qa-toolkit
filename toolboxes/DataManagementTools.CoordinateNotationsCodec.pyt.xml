@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="CoordinateNotationsCodec" displayname="Coordinate Notation Converter" toolboxalias="datamgmt" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Reads coordinates written as text in a field (decimal degrees, degrees and minutes, degrees minutes seconds, UTM, MGRS or plain X,Y pairs) into numeric latitude and longitude fields with a status and the matched rule per row, optionally builds points; or writes latitude/longitude fields or point geometry as DD, DM, DMS, UTM or MGRS text. Pure Python, Basic licence.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Table, feature class or layer (selection and definition query are honoured).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="mode" expression="mode">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: text field to numbers. FORMAT_FIELDS: latitude and longitude fields to text. FORMAT_GEOMETRY: point geometry to text.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="text_field" expression="text_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: text field with the coordinates.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="in_notation" expression="in_notation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: AUTO (recognise each text), or force DD, DM, DMS, UTM, MGRS or PROJECTED_XY. Under AUTO with a projected Coordinate System, a pair that is not a valid latitude/longitude is read as X,Y metres only when both numbers are larger than 360 (rule XY:..., with a warning); a pair with a smaller number keeps its degree verdict.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="coord_order" expression="coord_order">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: order of bare number pairs. UNSPECIFIED, LAT_LON or LON_LAT. For plain X,Y pairs LAT_LON means Y (northing) first. UTM texts are always read easting first.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="region_west" expression="region_west">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: west edge of the sanity region in degrees (optional; all four edges or none).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="region_south" expression="region_south">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: south edge of the sanity region in degrees.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="region_east" expression="region_east">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: east edge of the sanity region in degrees (west greater than east means the region crosses the antimeridian).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="region_north" expression="region_north">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: north edge of the sanity region in degrees.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="utm_letters" expression="utm_letters">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: meaning of N or S after a UTM zone. AUTO, BAND (latitude band letter) or HEMISPHERE.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="utm_hemisphere" expression="utm_hemisphere">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: hemisphere for UTM texts that have no letter (zone, easting, northing). NORTH or SOUTH reads them, also under Input Notation AUTO. NOT_SET: AMBIGUOUS under UTM, not read under AUTO (the reason says to set this).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="mgrs_point" expression="mgrs_point">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: CENTRE (default) or SW_CORNER of the MGRS cell.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="crs" expression="crs">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;System of the output points and of plain X,Y texts. Default WGS 84.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="lat_field" expression="lat_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT_FIELDS: numeric latitude field (degrees).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="lon_field" expression="lon_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT_FIELDS: numeric longitude field (degrees).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_notation" expression="out_notation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes: DD, DM, DMS, UTM or MGRS.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_decimals" expression="out_decimals">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes: decimals of the smallest unit (degrees for DD, minutes for DM, seconds for DMS, metres for UTM, MGRS digits per axis 0-5). Empty = 6 for DD, 4 for DM, 2 for DMS, 0 for UTM, 5 for MGRS.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="hemisphere_style" expression="hemisphere_style">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, DD/DM/DMS: SUFFIX_LETTER (24.5 N), PREFIX_LETTER (N 24.5), SIGN (-24.5) or SUFFIX_ARABIC_WORD. A SIGN pair has no letter or label: read it back with Coordinate Order set.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="unit_style" expression="unit_style">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, DM/DMS: SYMBOLS (24 38' 10.5") or SPACES.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="pair_separator" expression="pair_separator">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, DD/DM/DMS: COMMA, SPACE or SEMICOLON between the two coordinates.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="digit_script" expression="digit_script">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, DD/DM/DMS: WESTERN or ARABIC_INDIC digits.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_order" expression="out_order">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, DD/DM/DMS: LAT_LON (default) or LON_LAT.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="utm_output_letter" expression="utm_output_letter">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, UTM: AUTO (default: the latitude band, 38R; band S, 32N-40N, is written N because S would read as the southern hemisphere), BAND (38R, band S as S), HEMISPHERE (38N / 38S) or HEMISPHERE_WORD (38 North / 38 South).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="mgrs_spaced" expression="mgrs_spaced">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT modes, MGRS: put spaces between the parts.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="field_prefix" expression="field_prefix">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text put before the names of the result fields (default CNC_; an empty prefix also gives CNC_), at most 58 characters: ASCII letters (A-Z, a-z), digits and underscores, not starting with a digit. A dBASE output keeps field names of 10 bytes: a prefix longer than 4 characters is shortened in some field names there.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table (or feature class for a feature input): the input fields plus the result fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_points" expression="out_points">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT: optional point feature class of the OK rows in the Coordinate System.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report: counts per status and rule, and every row that is not OK.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="ok_count" expression="ok_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Rows with status OK (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;PARSE_TEXT reads one text field. Every row gets a status: OK (numbers written), AMBIGUOUS (more than one reading and nothing decides), OUT_OF_RANGE (a number, minutes or seconds outside its range, or the position outside the sanity region), SWAPPED_LAT_LON_SUSPECT (the values only make sense with latitude and longitude exchanged; reported, never exchanged) or UNPARSEABLE, each with the matched rule and a reason in the note. Rows that are not OK get empty (NULL) numbers, and 0 in a shapefile or dBASE output, which cannot store NULL. A text that cannot be read never stops the run: the output has one row per input row.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A pair of bare numbers such as '24.6383, 46.7208' is AMBIGUOUS unless the Coordinate Order is set or a Sanity Region leaves one reading. Hemisphere letters (N S E W, or the Arabic words), labels (lat, lon) and signs decide by themselves. Numbers with no separator or mark that could be split in more than one way ('24 38 46 43') are AMBIGUOUS. The one inference the tool makes is RANGE_FORCED: if only one order or hemisphere reading is possible within the valid ranges, the row is OK with that rule and a note, and the run warns with the number of such rows; filter on the rule field to review them. OK readings worth a look also carry a rule tag and a note: DASH_SEP (a dash between spaces read as the separator), WHOLE_DEGREES (both values whole degrees) and MGRS:COARSE (an MGRS reference of a 100 km or 10 km square). Minutes or seconds of 60 or more are OUT_OF_RANGE. Decimal commas, Arabic-Indic and Persian digits and Arabic separators are understood. Characters that belong to no coordinate (a footnote mark, a stray letter, a second decimal point as in 10.5.2020, a number written '.5') reject their own row only.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;UTM texts: a letter after the zone that is N is the northern hemisphere; S is AMBIGUOUS (latitude band S, 32N-40N, or southern hemisphere) unless UTM Letter Meaning, a hemisphere word (North, South, or the Arabic words) or a Sanity Region decides (UTM Default Hemisphere does not: it applies only to texts with no letter); other letters are latitude bands. MGRS references with 0 to 16 digits (even number) are read to the centre of their cell (or the south-west corner with MGRS Point); spaced digits must be two groups of the same length ('38R PN 741 25988' is UNPARSEABLE, rule MGRS_GROUPS: leading zeros may be lost). An MGRS cell across 80S or 84N, or UTM numbers beyond it by less than their rounding, are read at the limit (rule LIMIT_CLAMPED). A number with four or more digits before the point that starts with 0 ('0012.5N', packed DDMM.mm) is UNPARSEABLE, rule PACKED_DEGREES. A zone and letter followed by one number, or by three or more, is UNPARSEABLE (rule UTM_INCOMPLETE). UTM and MGRS are WGS 84 and the MGRS letters are the current WGS 84 scheme only; polar (UPS) grids are not supported.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The Coordinate System parameter is the system of the output points and of plain X,Y texts. The tool converts only between latitude/longitude and WGS 84 UTM, MTRF-2000 UTM 37N-39N, Ain el Abd UTM 37N-39N and Web Mercator; no datum transformation is applied (a warning is given when the declared system is not WGS 84). For any other system, project the data first.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;FORMAT_FIELDS and FORMAT_GEOMETRY write text with exact decimal rounding (24.99999999 degrees with 2 decimals of seconds is 25 00 00.00, never 24 59 60.00); MGRS digits are truncated, as the grid defines. The input is never changed: the output table is a copy of the input plus the result fields, and Output Points (PARSE_TEXT only) holds the OK rows.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Built-in alternatives (Basic, Standard and Advanced): Convert Coordinate Notation reads a table with one Input Coordinate Format setting per run and writes points; it also handles GARS, GEOREF and USNG and datum transformations, which this tool does not. Its DD_1, DMS_1 and DDM_1 settings read mixed Latin-digit text with symbols and N/E letters in Pro 3.3.2 (observed); invalid rows get no point and no reason. Calculate Geometry Attributes and Generate Coordinate Notations (Defense) write the coordinates of a point layer as text. If your column holds only Latin-digit DD, DM or DMS text, Convert Coordinate Notation already does the job. This tool adds Arabic-Indic and Persian digits and Arabic words, a status, rule and reason for every row, UTM, MGRS, WKT and plain X,Y texts in one column, and text output from numeric fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Coordinate Notation Converter</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Reads coordinates written as text in a field (decimal degrees, degrees and minutes, degrees minutes seconds, UTM, MGRS or plain X,Y pairs) into numeric latitude and longitude fields with a status and the matched rule per row, optionally builds points; or writes latitude/longitude fields or point geometry as DD, DM, DMS, UTM or MGRS text. Pure Python, Basic licence.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>coordinates</keyword>
+      <keyword>DMS</keyword>
+      <keyword>UTM</keyword>
+      <keyword>MGRS</keyword>
+      <keyword>notation</keyword>
+      <keyword>Arabic</keyword>
+      <keyword>parse</keyword>
+      <keyword>format</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

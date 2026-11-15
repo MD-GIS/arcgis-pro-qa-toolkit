@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="PivotLongToWide" displayname="Pivot Table to Columns" toolboxalias="datamgmt" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Turns a long table (one row per item and class) into a wide table with one row per item and one column per distinct class value, aggregating a value field with SUM, COUNT, MIN, MAX or MEAN. Works on a Basic licence (the built-in Pivot Table tool needs Advanced).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Long input table or feature layer.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="row_fields" expression="row_fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Fields whose value combinations become the output rows.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="column_field" expression="column_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Field whose distinct values become the output columns (text, number, date or GUID; Blob, Raster and Geometry fields are refused).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="value_field" expression="value_field">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional field to aggregate. Leave empty to count rows.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="aggregation" expression="aggregation">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;SUM (default), COUNT, MIN, MAX or MEAN.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="column_prefix" expression="column_prefix">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text put before every value to form the column name (default C_).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="fill_value" expression="fill_value">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;NULL (default) or ZERO. Applies only to combinations with no source row at all; a cell whose source rows are all null stays NULL.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="max_columns" expression="max_columns">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;The tool stops if there would be more value columns than this (default 250).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;New output table.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="column_count" expression="column_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of value columns created (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Rows: the output has one row for each distinct combination of the row fields (null keys form their own row), sorted naturally (dates and times in time order). Row fields keep their type, alias and field-level domain (a warning lists row fields whose domain the output workspace does not have; subtype-level domains are not carried). Text row fields are as wide as their longest value (in a folder output, as wide as its UTF-8 bytes).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Columns: each distinct value of the column field becomes one column named Prefix + value, made valid for the output workspace. A null value gives &amp;lt;prefix&amp;gt;NULL and an empty text, or a text of only spaces, &amp;lt;prefix&amp;gt;EMPTY. Trailing spaces count: 'a' and 'a ' give C_a and C_a_ (their aliases look the same). If two values give the same name (for example 'a-b' and 'a b' both become C_a_b), the later one in natural order gets _1, _2 and so on. FLOAT (single precision) values are used as stored (0.1, not 0.10000000149011612), in names, aliases and aggregates. A row field listed twice is refused.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Aliases: in a geodatabase each column's alias is the original value; a null value and the text 'NULL' (and an empty text and the text 'EMPTY') both get the alias NULL (EMPTY), so tell those columns apart by name (C_NULL, C_NULL_1). An alias longer than 255 bytes is cut and ends in '...'. A dBASE output (a folder) cannot store aliases and keeps names of at most 10 bytes (10 Latin letters, 5 Arabic letters), so a warning lists every renamed column with its value; ArcGIS Pro also adds its own field Field1 to a new dBASE table, so no output field is called Field1 there (it becomes Field1_1).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Values: without a value field, rows are counted. COUNT with a value field counts its non-null values. SUM, MIN, MAX and MEAN need a numeric value field (dates and text are refused, also for MIN and MAX; use COUNT for them) and ignore nulls; a NaN value counts as null (a NaN in a row field or the column field too; -0 and 0 are one key, written 0, and a value -0 is read as 0). SUM is the exactly rounded sum of the values; MEAN is that sum divided by the count (so it can differ from the exact mean by about one unit in the last digit). Both are double precision, so a Big Integer (or ObjectID) value or sum beyond 2^53 (about 9e15) is rounded, with a warning that counts such cells. MIN and MAX return a real source value: when one is a whole number beyond 2^53, which no Double holds exactly and an ArcGIS Pro Big Integer field cannot hold, every value column is text of 20 characters with every digit kept (a warning says so). Value columns are otherwise DOUBLE (LONG for COUNT). A SUM or MEAN cell with both +inf and -inf is not a number (a warning counts such cells; a geodatabase stores them empty). A dBASE table keeps about 12 significant digits of a DOUBLE, so a message reports values stored rounded (a warning when one moves by 0.5 or more; a warning also when Double row keys that differ are stored alike, so their rows read alike). It also keeps no trailing spaces of a text, so text row keys that differ only by trailing spaces ('a' and 'a ', or '' and ' ') are stored alike there, with a warning that their rows read alike; a blank text ('' or only spaces) is stored as one blank, which ArcGIS Pro reads back as ' '.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Empty cells: Fill Value applies only to item/class combinations that have no source row at all. A cell that has source rows whose values are all null stays NULL, also with ZERO. A dBASE table (output in a folder) cannot store an empty number: empty cells are written as 0 there, with a warning; write to a file geodatabase to keep them null. The same holds for a null key in a numeric row field: it is stored as 0 there, so its row reads like the row of the key 0 (a warning names the field), and a null key in a text row field is stored as a blank text (one blank, ' ').&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Field types in a dBASE table: it has no time of day in a date field, so a warning names a Date row field whose keys have times (keys of the same day then read alike). GUID row fields are written there as text of 38 characters, Big Integer as text with every digit, Date Only as a date; a Time Only or Timestamp Offset row field is refused for a folder output. An ObjectID row field is LONG while every key fits 32 bits; with 64-bit ObjectIDs it is BIGINTEGER in a geodatabase, GeoPackage or memory (a key above 2^53 - 1, which ArcGIS Pro cannot store there, stops the run) and, in a dBASE table, DOUBLE while every key has at most 12 significant digits, else text of 20 characters with every digit kept.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Time zones: two TimestampOffset values for the same instant with different UTC offsets (10:00+03:00 and 07:00+00:00) are one key; the one with the smallest offset names the column or fills the row field, whatever the row order. A TimestampOffset value always keeps its offset in the column name and alias, also at midnight (2024-01-01 00:00:00+03:00), and rows and columns of such values are in time order (by instant).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Look-alike values: texts that differ only in their Unicode form (an accent typed as one letter or as a letter plus a combining mark, a no-break space), in invisible characters (a zero-width space) or in leading, trailing or repeated spaces stay separate rows or columns; a message lists them. A message also names columns that share an alias.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;The built-in Pivot Table tool needs an Advanced licence, takes no aggregation, needs unique combinations and fails on null values in the pivot field; this tool runs on any licence. The result is a plain table: join it back to features on the row fields (for example with Join Field).&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;A column field with a coded-value domain gives columns named and aliased by the code, not by its description.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Selections and definition queries on layer inputs are honoured. The tool writes a new table only; an existing output is replaced only when geoprocessing is allowed to overwrite outputs.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Pivot Table to Columns</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Turns a long table (one row per item and class) into a wide table with one row per item and one column per distinct class value, aggregating a value field with SUM, COUNT, MIN, MAX or MEAN. Works on a Basic licence (the built-in Pivot Table tool needs Advanced).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>pivot</keyword>
+      <keyword>transpose</keyword>
+      <keyword>crosstab</keyword>
+      <keyword>wide table</keyword>
+      <keyword>Basic licence</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>

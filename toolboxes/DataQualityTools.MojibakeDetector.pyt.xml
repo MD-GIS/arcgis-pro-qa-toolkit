@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en">
+  <Esri>
+    <ArcGISFormat>1.0</ArcGISFormat>
+    <SyncOnce>TRUE</SyncOnce>
+  </Esri>
+  <tool name="MojibakeDetector" displayname="Broken Text Encoding Detector" toolboxalias="dataquality" xmlns="">
+    <summary>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Scans the text fields of a layer or table for text that was damaged by a wrong character encoding (mojibake): UTF-8 read as Windows-1252 or Latin-1 ('Ã©' for é), UTF-8 read through the Arabic code page Windows-1256, Arabic Windows-1256 or ISO-8859-6 bytes read as Western European text, Western European or Turkish text read through the wrong code page, double encoding, replacement characters (U+FFFD), stray C1 control characters and question marks where characters were lost. Where the damage can be undone it proposes the repaired text, with a confidence class and the rule behind it. For shapefiles and dBASE tables it also reads the declared code page. The input is never edited.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</summary>
+    <parameters>
+      <param name="in_table" expression="in_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Layer or table to scan.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="fields" expression="fields">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Text fields to scan. Default: all text fields.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_table" expression="out_table">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Output table: one row per damaged value and field (SRC_TABLE, FIELD_NAME, SRC_OID, ORIG_TEXT, PROP_TEXT, PATTERN, CONFIDENCE, RULE_ID, DETAIL).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="checks" expression="checks">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Kinds of damage to look for. Default: all.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="check_code_page" expression="check_code_page">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;For a shapefile or dBASE input, read the .cpg file and the code page mark and check the raw text bytes.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_field_summary" expression="out_field_summary">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional table with one row per scanned field: counts by confidence.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_repaired" expression="out_repaired">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional copy of the input with the repairs of the chosen level applied. Must be in a geodatabase.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="repair_level" expression="repair_level">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Lowest confidence class that is applied to the repaired copy (or listed in the log). Default HIGH. Lower levels apply proposals that are only likely or that another code page contradicts; look at the repair log first (run it without a copy to preview). Repair before any upper/lower/title-case step: a case change after the damage can change letters (rule U11, MEDIUM). At MEDIUM, clean labels with a sign after an accented letter (Å–Moskenes, HAITÍ…) are rewritten into broken text (rule U2): check the log for them.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_repair_log" expression="out_repair_log">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Table that lists every repaired value (needed with Output Repaired Copy). Without a copy it shows what would change.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="out_report" expression="out_report">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Optional Excel (.xlsx) or CSV report with Summary and Detail sheets (a .csv report is two files: &amp;lt;name&amp;gt;_summary.csv and &amp;lt;name&amp;gt;_detail.csv).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+      <param name="issue_count" expression="issue_count">
+        <dialogReference>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Number of damaged values found (derived).&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</dialogReference>
+      </param>
+    </parameters>
+    <usage>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Every finding has CONFIDENCE HIGH, MEDIUM or LOW and a RULE_ID. The class is given by the rule that produced the finding, not by a probability; every rule is listed in the documentation, and the Summary of the report gives the class and wording of each rule that occurs. For a finding with a proposed text the class says how far the proposal can be trusted to be the original; for a finding without one it says how sure the damage is. HIGH is a rule class, not a guarantee: it is given only when the text has exactly one plausible reading, and it was measured to be wrong in a small number of rare cases (see the limits in the documentation). Only UTF-8 damage read as Windows-1252, Windows-1256 or double encoded can be HIGH. When another code page would also give clean, different text (for example 'StraÃŸe' also reads as 'Straþe' in ISO-8859-15), the finding is MEDIUM and DETAIL names the other reading. UTF-8 read as ISO-8859-6, numbers (digits only) read through an Arabic code page, and swaps between single-byte code pages (one byte becomes one character, always valid text) are MEDIUM or LOW at best. Do not change the case (upper, lower, title, swapped: Excel PROPER, .title() in Calculate Field, SQL LOWER) of damaged text before the repair: a case change can turn one letter into another, so a value whose case may have been changed is MEDIUM (rule U11) and DETAIL names the readings; a case edit of only part of the text can still give a wrong HIGH. A value whose words were damaged a different number of times can get a HIGH proposal that is still damaged: run the tool again on the copy. A value that was encoded more than once and then cut (for example to a field width) is MEDIUM (rule U12): the part before the cut is proposed, and a second run does not complete it. A value encoded four to eight times is MEDIUM (rule U13) and is left as stored at the default level. ASCII control characters (NUL padding, SUB) next to damaged text are kept in place in the repair, and decomposed (NFD) text keeps its combining accents. Question marks and replacement characters cannot be repaired, because the characters are gone; the same holds for UTF-8 text from which a cleaning step removed the control characters (rule X2, LOW, reported without a repair). Check MEDIUM and LOW proposals by eye before you apply them.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Output Repaired Copy is a copy of the input in which only the repairs of the chosen level and better are applied (default HIGH). It needs an Output Repair Log, which lists every value that was changed. With a log but no copy, the log shows what would be changed. The copy must be in a geodatabase. A layer with a selection or definition query is scanned and copied as selected.&lt;/SPAN&gt;&lt;/P&gt;&lt;P&gt;&lt;SPAN&gt;Check Declared Code Page applies to a shapefile or dBASE input: it reads the .cpg file and the code page mark in the .dbf header and checks the raw bytes of the text fields for valid UTF-8; the messages and the report name what it finds. The tool looks at the characters that ArcGIS returns; damage that produced valid but wrong letters (for example Windows-1256 read as ISO-8859-6) cannot be detected.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</usage>
+  </tool>
+  <dataIdInfo>
+    <idCitation>
+      <resTitle>Broken Text Encoding Detector</resTitle>
+    </idCitation>
+    <idAbs>&lt;DIV STYLE="text-align:Left;"&gt;&lt;P&gt;&lt;SPAN&gt;Scans the text fields of a layer or table for text that was damaged by a wrong character encoding (mojibake): UTF-8 read as Windows-1252 or Latin-1 ('Ã©' for é), UTF-8 read through the Arabic code page Windows-1256, Arabic Windows-1256 or ISO-8859-6 bytes read as Western European text, Western European or Turkish text read through the wrong code page, double encoding, replacement characters (U+FFFD), stray C1 control characters and question marks where characters were lost. Where the damage can be undone it proposes the repaired text, with a confidence class and the rule behind it. For shapefiles and dBASE tables it also reads the declared code page. The input is never edited.&lt;/SPAN&gt;&lt;/P&gt;&lt;/DIV&gt;</idAbs>
+    <searchKeys>
+      <keyword>encoding</keyword>
+      <keyword>mojibake</keyword>
+      <keyword>Arabic</keyword>
+      <keyword>UTF-8</keyword>
+      <keyword>code page</keyword>
+      <keyword>text</keyword>
+      <keyword>quality</keyword>
+    </searchKeys>
+  </dataIdInfo>
+  <distInfo>
+    <distributor>
+      <distorFormat>
+        <formatName>ArcToolbox Tool</formatName>
+      </distorFormat>
+    </distributor>
+  </distInfo>
+  <mdHrLv>
+    <ScopeCd value="005"/>
+  </mdHrLv>
+</metadata>
