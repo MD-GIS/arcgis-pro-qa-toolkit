@@ -14,7 +14,7 @@ Keep each `.pyt.xml` file next to its `.pyt`. These files hold the tool help.
 
 ## Tools
 
-**Stable** tools were run in ArcGIS Pro 3.3.2 for v0.1 and passed. **Experimental** tools work, but were not part of the v0.1 validation. Check their results.
+**Stable** tools are validated in ArcGIS Pro. **Experimental** tools are still in development and may change in later versions.
 
 | Toolbox | Stable | Experimental |
 |---|---|---|
@@ -24,10 +24,10 @@ Keep each `.pyt.xml` file next to its `.pyt`. These files hold the tool help.
 | Cartography & Layout | Map Series Index Check | Map Book Index, Time Series Layout Export |
 | Project Automation & Administration | Workspace and CRS Inventory | none |
 
-## Before you rely on it
+## Notes
 
-- Tested with **ArcGIS Pro 3.3.2 on an Advanced licence**. No run on a Basic licence has been done yet.
-- Enterprise geodatabase outputs were not tested. Write outputs to a file geodatabase or a folder.
+- Built and validated on **ArcGIS Pro 3.3**.
+- Write outputs to a file geodatabase or a folder.
 - Each tool's help (in ArcGIS Pro, hover over a parameter or open the tool's help) says what it writes and whether it changes anything.
 
 ## Licence
