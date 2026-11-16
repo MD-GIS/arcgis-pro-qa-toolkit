@@ -22,7 +22,7 @@
 |---|---|---|
 | Data Quality & Validation | Arabic-English Name Check، Positional Accuracy Report (NSSDA/ASPRS)، Domain Audit، Multi-Value Code Validator، Near-Miss Value Checker، Join Key Diagnostics | Geometry Quality Checker، QC Scorecard Report، Tile Edge Match Check، Topology Check (Lite)، Broken Text Encoding Detector |
 | Data Management & Productivity | Dataset Change Report، Excel Import with Field Types، Spatial Numbering، Rule-Based Attribute Update | Coordinate Notation Converter، Pivot Table to Columns، Disperse Stacked Points |
-| Spatial Analysis | Thiessen Polygons (Clipped)، Polygon Holes and Parts، Boundary Description (Metes and Bounds) | Line Network Rule Check، Vertex Extractor، Rose Diagram، Polygon Shape and Width Metrics، Point Thinning by Priority |
+| Spatial Analysis | Thiessen Polygons (Clipped)، Polygon Holes and Parts، Boundary Description (Metes and Bounds)، Line Network Rule Check | Vertex Extractor، Rose Diagram، Polygon Shape and Width Metrics، Point Thinning by Priority |
 | Cartography & Layout | Map Series Index Check | Map Book Index، Time Series Layout Export |
 | Project Automation & Administration | Workspace and CRS Inventory | لا يوجد |
 
